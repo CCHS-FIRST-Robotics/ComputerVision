@@ -29,7 +29,7 @@ def capture(cam, imgdir):
 
     # Turn off auto exposure
     # set exposure time
-    cap.set(cv2.CAP_PROP_EXPOSURE, -4)
+    #cap.set(cv2.CAP_PROP_EXPOSURE, cam['exposure'])
 
     tw, th = get_dim(w, h, cam["wr"])
     print("Press s to save image. ESC to quit")
