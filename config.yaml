@@ -6,7 +6,7 @@ robot:
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera:
     id: 0 #/dev/video0
-    exposure: -4
+    exposure: -4 # -4 max 
     type: arducam
     fovh: 65 # fov horizontal
     yaw: [0,-90,180,90] # camera orientatiom for each camera
@@ -35,13 +35,13 @@ stream:
 
 tasks: # what tasks to run
     marker: True
-    objdet: False
+    objdet: True
     stream: False
 
 display: # process to display images
     main: False
     marker: True
-    objdet: False
+    objdet: True
 
 FPS: # FPS display settings
     org: [5, 20]
