@@ -64,8 +64,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
 
                     dist = angles.get_distance(pixel_sz, cfg["marker"]["size"])
 
-                    pose = 0
-                    markers.extend([id, pose, angleh_rad, anglev_rad, dist])
+                    markers.extend([id, angleh_rad, anglev_rad, dist])
 
                     if cfg["display"]["marker"]:
                         cv2.circle(framei, (cx, cy), 4, (0, 0, 255), -1)
