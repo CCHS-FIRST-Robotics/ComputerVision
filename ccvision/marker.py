@@ -134,7 +134,7 @@ def marker_detect4cam(cfg, shm, sem, quit):
                 x, y, w, h = roi
                 framei = framei[y : y + h, x : x + w]
             frames.append(framei)
-            mrkrs = detector.detect(frame, cam["yaw_rad"][i], cam["pitch_rad"][i])
+            mrkrs = detector.detect(framei, cam["yaw_rad"][i], cam["pitch_rad"][i])
             markers.extend(mrkrs)
 
         if len(markers) > 0:
