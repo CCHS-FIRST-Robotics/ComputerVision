@@ -134,12 +134,12 @@ def marker_detect4cam(cfg, shm, sem, quit):
                 x, y, w, h = roi
                 framei = framei[y : y + h, x : x + w]
 
-            mrkrs = detector.detect(framei, cam["yaw_rad"][i], cam["pitch_rad"][i])
+            markers = detector.detect(framei, cam["yaw_rad"][i], cam["pitch_rad"][i])
 
-            if len(mrkrs) > 0:
+            if len(markers) > 0:
                 markers.insert(0, i) # cameraid
                 markers.insert(0, packetids[i])
-                network.send_array("tags", mrkrs)
+                network.send_array("tags", markers)
                 packetids[i] += 1
 
             if cfg["display"]["marker4cam"]:
