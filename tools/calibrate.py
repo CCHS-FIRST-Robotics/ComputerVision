@@ -16,7 +16,7 @@ objp[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
 objpoints = []  # 3d point in real world space
 imgpoints = []  # 2d points in image plane.
 
-images = glob.glob("imgs_out/*.png")
+images = glob.glob("works/*.png")
 
 print("total", len(images))
 
@@ -28,7 +28,8 @@ for fname in images:
     # Find the chess board corners
     # ret, corners = cv2.findChessboardCorners(gray, grid, cv2.CALIB_CB_ADAPTIVE_THRESH)
     ret, corners = cv2.findChessboardCorners(gray, grid)
-    # ret, corners = cv2.findChessboardCornersSB(gray, grid, cv2.CALIB_CB_EXHAUSTIVE)
+    #flags = cv2.CALIB_CB_EXHAUSTIVE + cv2.CALIB_CB_ACCURACY + cv2.CALIB_CB_LARGER + cv2.CALIB_CB_NORMALIZE_IMAGE
+    #ret, corners = cv2.findChessboardCornersSB(gray, grid, flags)
 
     if corners is not None:
         print(corners.shape)
