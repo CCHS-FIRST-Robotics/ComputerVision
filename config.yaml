@@ -9,7 +9,7 @@ camera4cam:
     camid: 0
     exposure: auto # -4 max sensitivity can be higher, 'auto' for auto exposure 
     type: arducam
-    fovh: 65 # fov horizontal
+    fovh: 68 # fov horizontal
     yaw: [180,-90,90,0] # camera orientatiom for each camera
     pitch: [30,-3,-3,-25] # vertical tilt angles for each cameraid + is up
     w: 5120 # capture pixel width
@@ -24,8 +24,8 @@ camera:
     id: 1
     camid: 4
     exposure: auto # -4 max sensitvity
-    fovh: 50
-    yaw: 20
+    fovh: 48
+    yaw: 29
     pitch: 0
     w: 640
     h: 480
