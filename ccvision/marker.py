@@ -52,7 +52,9 @@ def marker_detect(cfg, shm, sem, procid, quit):
                     cy = int(c[:, 1].sum() / 4)
 
                     # TODO change to use sides
-                    pixel_sz = c[:, 0].max() - c[:, 0].min()
+                    pixel_sz1 = c[:, 0].max() - c[:, 0].min()
+                    pixel_sz2 = c[:, 1].max() - c[:, 1].min()
+                    pixel_sz = max(pixel_sz1, pixel_sz2)
 
                     angleh_rad, anglev_rad = angles.get_angle(cx, cy)
                     angleh_rad += cam["yaw_rad"][i]
