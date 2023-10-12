@@ -1,8 +1,6 @@
 # 2024_April_Tag
 
-This project tracks aipral tags using the opencv library
-
-beep boop i am wiill
+This project tracks April Tags using the opencv library
 
 ## Tags
 
