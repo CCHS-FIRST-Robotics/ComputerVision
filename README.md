@@ -24,10 +24,3 @@ Commit the changes:
 Push the commit to the repository: 
 ```git push```
 
-## Documentation
-The documentation pages and visuals are created by doxygen. The doxygen configuration is almost completely default, its file is "Doxygen" learn more about doxygen
-
-When updating code, comments, or anything that should be in documentation, run doxygen before commiting. Install Doxygen on mac with Brew: 
-```brew install doxygen```
-
-
