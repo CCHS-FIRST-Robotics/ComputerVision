@@ -1,4 +1,4 @@
-# Computer Vision
+# Computer Vision Tutorials
 
 
 ## Getting started with python 
@@ -11,6 +11,8 @@
 - [black](https://www.geeksforgeeks.org/python-code-formatting-using-black/#)
 - [black & isort formatting](https://developer.lsst.io/python/formatting.html)
 
+## Python documentation
+- [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
 
 ## Using the terminal
 - [Linux](https://ubuntu.com/tutorials/command-line-for-beginners#1-overview)  
