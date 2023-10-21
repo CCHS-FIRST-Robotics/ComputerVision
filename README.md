@@ -24,4 +24,4 @@ You Only Look Once
 ## Guides
 - [Python environment setup](docs/pyenv_setup.md)
 - [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
-- [Adding your work](docs/adding_your_work.md)
+- [Adding your work](adding_your_work.md)
