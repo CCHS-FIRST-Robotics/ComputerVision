@@ -1,26 +1,27 @@
-# 2024_April_Tag
+# 2024 CCHS Computer Vision
 
-This project tracks April Tags using the opencv library
+Project inlcudes 
+- April tag detections using opencv aruco library
+- yolo object detection
+- video streaming
 
-## Tags
+## Installation
+### Setup
+```pip install -r requirements.txt```
 
+## April Tags
+Aruco Marker Detection
 
-First robotics how to use April Tags
-https://docs.wpilib.org/en/stable/docs/software/vision-processing/apriltag/apriltag-intro.html
+## Yolo
+You Only Look Once
 
-## how to add your work
+## Video Streaming
+[Video streaming code](videostreaming/README.md)
 
-Run doxygen to update the docs
+## Tutorials and HOWTOs
+[Computer vision tutorials](docs/README.md)
 
-Create a branch: 
-```git branch *name*``` (replace "*name*" with what changes you intend to make).
-
-Track all of your new changes: 
-```git add```
-
-Commit the changes: 
-```git commit -m "*changes*"``` (replace "*changes*" with what changes you made)
-
-Push the commit to the repository: 
-```git push```
-
+## Guides
+- [Python environment setup](docs/pyenv_setup.md)
+- [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
+- [Adding your work](docs/adding_your_work.md)
