@@ -1,18 +1,15 @@
-# Computer Vision Tutorials
-
+# Tutorials and HOWTOs
 
 ## Getting started with python 
 1. [The Ultimate Python Beginner's Handbook](https://www.freecodecamp.org/news/the-python-guide-for-beginners/)
 1. [Python tutorial](https://www.w3schools.com/python/default.asp)  
 1. [VS Code python setup](https://code.visualstudio.com/docs/python/python-tutorial)
+1. [Argument parser tutorial](https://docs.python.org/3/howto/argparse.html)
 
 ## Python code formatting
 - [Formatting Python in VS Code](https://code.visualstudio.com/docs/python/formatting)  
 - [black](https://www.geeksforgeeks.org/python-code-formatting-using-black/#)
 - [black & isort formatting](https://developer.lsst.io/python/formatting.html)
-
-## Python documentation
-- [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
 
 ## Using the terminal
 - [Linux](https://ubuntu.com/tutorials/command-line-for-beginners#1-overview)  
@@ -41,6 +38,7 @@
 1. [Camera Calibration](https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html)
 1. [Aruco Marker Detection](https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html)  
 1. [AprilTag Introduction](https://docs.wpilib.org/en/stable/docs/software/vision-processing/apriltag/index.html)
+1. [First robotics how to use April Tags](https://docs.wpilib.org/en/stable/docs/software/vision-processing/apriltag/apriltag-intro.html)
 
 ## Video Streaming
 
@@ -49,3 +47,8 @@
 
 ## Object detection
 1. [Yolo v8 Quickstart](https://docs.ultralytics.com/quickstart/)
+
+# Guides
+- [Python environment setup](docs/pyenv_setup.md)
+- [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
+- [Adding your work](docs/adding_your_work.md)
