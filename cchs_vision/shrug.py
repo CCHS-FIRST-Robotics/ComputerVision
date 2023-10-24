@@ -1,5 +1,4 @@
 import cv2
-import aruco from cv2
 import numpy as num
 # import matplotlib.pyplot as plt
 # import matplotlib as mpl
@@ -17,8 +16,8 @@ if not cap.isOpened():
     quit()
  
 # aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
-parameters =  aruco.DetectorParameters()
+aruco_dict = cv2.aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
+parameters =  cv2.aruco.DetectorParameters()
 
 
 
@@ -30,7 +29,7 @@ while True:
     
     # F = P * D / W
 
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, None, parameters=parameters)
+    corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray, aruco_dict, None, parameters=parameters)
     for i in corners:
         (topLeft, topRight, bottomRight, bottomLeft) = i.reshape((4, 2))
         topRight = (int(topRight[0]), int(topRight[1]))
