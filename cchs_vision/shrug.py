@@ -1,5 +1,5 @@
 import cv2
-import aruco from cv2
+from cv2 import aruco
 import numpy as num
 # import matplotlib.pyplot as plt
 # import matplotlib as mpl
