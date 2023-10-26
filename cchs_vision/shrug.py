@@ -1,24 +1,20 @@
 import cv2
-from cv2 import aruco
-import numpy as num
-# import matplotlib.pyplot as plt
-# import matplotlib as mpl
-# import pandas as pd
-# %matplotlib nbagg
+import numpy as np
+
 def dist(x1, y1, x2, y2):
-    return num.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
 # Load an image 
 cap = cv2.VideoCapture(0)
-# img = cv2.imread("starry_night.jpg") 
-# img = cap.read()
- 
+
+# Quit if image cant be opened
 if not cap.isOpened():
-    print("Cannot open camera")
+    print("err")
     quit()
  
-# aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
-parameters =  aruco.DetectorParameters()
+# Get the family and parameters
+aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_16H5)
+parameters = cv2.aruco.DetectorParameters()
 
 
 
@@ -29,8 +25,8 @@ while True:
 
     
     # F = P * D / W
-
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, None, parameters=parameters)
+    # Get corners and lengths
+    corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray, aruco_dict, None, parameters=parameters)
     for i in corners:
         (topLeft, topRight, bottomRight, bottomLeft) = i.reshape((4, 2))
         topRight = (int(topRight[0]), int(topRight[1]))
@@ -44,10 +40,9 @@ while True:
         
 
         
-    frame_markers = aruco.drawDetectedMarkers(img.copy(), corners, ids)
+    frame_markers = cv2.aruco.drawDetectedMarkers(img.copy(), corners, ids)
     cv2.imshow("The hell is numpy", frame_markers)
-    # plt.savefig("_data/markers.pdf")
-    # plt.show()
 
+    # Quit  on q
     if cv2.waitKey(1) == ord('q'):
             break    
