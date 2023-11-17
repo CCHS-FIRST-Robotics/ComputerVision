@@ -54,5 +54,6 @@ if __name__ == '__main__':
                 dist = distance_to_pixels(
                     (leftLength + rightLength) / 2, cfg["height"], cfg["vert_fov"], cfg["marker_size_in"])
                 print(f"{dist} Meters")
+        cv2.imshow("April Tag Testing", img)
         if cv2.waitKey(1) == ord('q'):
             break
