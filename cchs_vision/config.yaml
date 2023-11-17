@@ -8,9 +8,9 @@ maker_ids:
   - 6
   - 7
   - 8
-fov: 60
+vert_fov: 60
+horz_fov: 75
 width: 640
 height: 480
+marker_size_in: 6
 marker_family: 16h5
-marker_size: 0.15 # In meters
-
