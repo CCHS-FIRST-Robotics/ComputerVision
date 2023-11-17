@@ -53,7 +53,7 @@ if __name__ == '__main__':
                 # topLength = topRight[0] - topLeft[0]
                 dist = distance_to_pixels(
                     (leftLength + rightLength) / 2, cfg)
-                print(f"{dist} Meters")
+                print(f"{dist} inches")
         cv2.imshow("April Tag Testing", img)
         if cv2.waitKey(1) == ord('q'):
             break
