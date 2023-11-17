@@ -21,10 +21,10 @@ class Detector:
         return [corners, ids]
 
 
-def distance_to_pixels(pixel_length, height, vert_fov_deg, april_tag_size_in):
-    theta = np.radians(vert_fov_deg)
-    theta_prime = pixel_length / height * theta
-    return april_tag_size_in / np.tan(theta_prime)
+def distance_to_pixels(pixel_length, cfg):
+    theta = np.radians(cfg["vert_fov"])
+    theta_prime = pixel_length / cfg["height"] * theta
+    return cfg["marker_size_in"] / np.tan(theta_prime)
 
 
 if __name__ == '__main__':
@@ -49,10 +49,10 @@ if __name__ == '__main__':
                 (topLeft, topRight, bottomRight, bottomLeft) = i.reshape((4, 2))
                 leftLength = topLeft[1] - bottomLeft[1]
                 rightLength = topRight[1] - bottomRight[1]
-                bottomLength = bottomRight[0] - bottomLeft[0]
-                topLength = topRight[0] - topLeft[0]
+                # bottomLength = bottomRight[0] - bottomLeft[0]
+                # topLength = topRight[0] - topLeft[0]
                 dist = distance_to_pixels(
-                    (leftLength + rightLength) / 2, cfg["height"], cfg["vert_fov"], cfg["marker_size_in"])
+                    (leftLength + rightLength) / 2, cfg)
                 print(f"{dist} Meters")
         cv2.imshow("April Tag Testing", img)
         if cv2.waitKey(1) == ord('q'):
