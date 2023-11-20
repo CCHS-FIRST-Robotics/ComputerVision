@@ -7,10 +7,15 @@ Project inlcudes
 
 ## Installation
 ### Setup
-```pip install -r requirements.txt```
+Ensure you're running the correct version of python with ```python --version``` (or ```python3 --version```)
+
+```python -m pip install -r requirements.txt```
+
+Install the latest [ZED SDK](https://www.stereolabs.com/developers/release/)
+Install the [ZED Python API](https://www.stereolabs.com/docs/app-development/python/install/)
 
 ## April Tags
-Aruco Marker Detection
+Apriltag Marker Detection with [OpenCV ArUco](https://docs.opencv.org/4.x/de/d67/group__objdetect__aruco.html)
 
 ## Yolo
 You Only Look Once

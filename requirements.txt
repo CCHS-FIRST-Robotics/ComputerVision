@@ -1,3 +1,6 @@
-I saw require ment (epic among us reference)
-Do you get it?
-I don't
+cython
+numpy
+opencv-python
+opencv-contrib-python
+pyopengl
+scipy
