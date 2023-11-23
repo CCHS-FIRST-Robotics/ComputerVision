@@ -84,12 +84,15 @@ class ZEDDetector:
         # Set the initial pose of the camera
         self.intial_pose = initial_pose
     
-    def periodic(self):
+    def periodic(self) -> bool:
         """Update the depth, image, and pose data from the ZED, and update the detected tags list
+
+        Returns:
+            bool: True if a new image is available, False otherwise
         """
         err = self.zed.grab(self.runtime_params)
         if err != sl.ERROR_CODE.SUCCESS: # A new image is available if grab() returns SUCCESS
-            return
+            return False
         
         self.zed.retrieve_image(self.image_zed, sl.VIEW.LEFT) # Get the left image
         self.zed.retrieve_measure(self.depth, sl.MEASURE.DEPTH) # Retrieve depth Mat. Depth is aligned on the left image
@@ -107,8 +110,17 @@ class ZEDDetector:
             self.detected_tags.append(tag)
             tag.draw_tag(image_debug)
         self.annotated_image = image_debug
+        
+        return True
     
+    def get_detected_tags(self) -> List[AprilTag]:
+        """Gets the list of detected AprilTags
 
+        Returns:
+            List[AprilTag]: List of detected AprilTags
+        """
+        return self.detected_tags
+    
     def get_image(self) -> cvt.MatLike:
         """Gets the latest image from the ZED camera (annotated with detected AprilTags)
 
@@ -146,6 +158,37 @@ class ZEDDetector:
         # sys.stdout.flush()
         # print(point_cloud_value)
         return np.array(point_cloud_value[0:3])
+    
+    def get_tag_pose(self, tag: AprilTag) -> Pose | None:
+        """Gets the pose of the given AprilTag relative to the robot
+
+        Args:
+            tag (AprilTag): AprilTag of interest
+
+        Returns:
+            Pose | None: Pose of the AprilTag relative to the robot; None if solvePnP fails
+        """
+        
+        object_points = np.array(tag.get_corner_translations())
+        image_points = np.array(tag.corners)
+        
+        retval, rvec, tvec = cv2.solvePnP(
+            object_points,
+            image_points,
+            self.left_camera_matrix,
+            self.left_distortion,
+            flags=cv2.SOLVEPNP_IPPE_SQUARE
+        )
+        
+        displacement = self.get_displacement(tag.center)
+        if not np.isnan(displacement[0]):
+            tvec = displacement
+        
+        rotation = Rotation.from_rotvec(rvec.T[0]).as_euler('xyz', degrees=False)
+        
+        if not retval:
+            return None
+        return self.get_robot_pose(Pose(*tvec, *rotation))
     
     def get_camera_pose_pnp(self) -> Pose | None:
         """Estimates the camera pose using SQPnP (https://www.ecva.net///papers/eccv_2020/papers_ECCV/papers/123460460.pdf)
@@ -295,7 +338,10 @@ if __name__ == '__main__':
     measurement_spacing = 6 # inches
     while True:
         
-        detector.periodic()
+        # Run the periodic function to update the image, depth, and pose data
+        # Returns True if a new image is available, False otherwise
+        if not detector.periodic():
+            continue
         
         if recording:
             with open("zed_pose.csv", 'a') as f:

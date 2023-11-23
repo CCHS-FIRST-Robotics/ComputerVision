@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from ultralytics import YOLO
+from ultralytics import YOLO # type: ignore
 
 model = YOLO("yolo-Weights/yolov8n.pt")
 

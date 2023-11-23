@@ -29,16 +29,72 @@ class Pose:
         Returns:
             str: string representation of the Pose object
         """
-        return f"Pose:\nx: {self.x}\nz: {self.z}\npitch: {self.get_pitch_degrees()}"
+        return f"Pose:\nx: {self.x}\nz: {self.z}\npitch: {self.get_heading_degrees()}"
     
-    def get_pitch_degrees(self) -> float:
-        """Gets the pitch of the pose in degrees
+    def get_2d_pose(self) -> npt.NDArray[np.float32]:
+        """Gets the 2d pose (x, z, pitch) of the pose
 
         Returns:
-            float: pitch of the pose in degrees
+            npt.NDArray[np.float32]: (3,) 2d pose
         """
-        pitch = Rotation.as_euler(self.rotation, 'xyz')[1]
-        return pitch*180/np.pi
+        return np.array([self.x, self.z, self.get_heading_degrees()])
+    
+    def get_3d_pose(self) -> npt.NDArray[np.float32]:
+        """Gets the 3d pose (x, y, z, roll, pitch, yaw) of the pose
+
+        Returns:
+            npt.NDArray[np.float32]: (6,) 3d pose
+        """
+        return np.array([self.x, self.y, self.z, *Rotation.as_euler(self.rotation, 'xyz')])
+    
+    def get_heading(self) -> float:
+        """Gets the heading of the pose
+
+        Returns:
+            float: heading of the pose
+        """
+        heading = Rotation.as_euler(self.rotation, 'xyz')[1]
+        return heading
+    
+    def get_heading_degrees(self) -> float:
+        """Gets the heading of the pose in degrees
+
+        Returns:
+            float: heading of the pose in degrees
+        """
+        return self.get_heading()*180/np.pi
+    
+    def get_x(self) -> float:
+        """Gets the x component of the pose translation
+
+        Returns:
+            float: x component of the pose translation
+        """
+        return self.x
+    
+    def get_x_inches(self) -> float:
+        """Gets the x component of the pose translation in inches
+
+        Returns:
+            float: x component of the pose translation in inches
+        """
+        return self.x*39.3701
+    
+    def get_y(self) -> float:
+        """Gets the y component of the pose translation
+
+        Returns:
+            float: y component of the pose translation
+        """
+        return self.y
+    
+    def get_y_inches(self) -> float:
+        """Gets the y component of the pose translation in inches
+
+        Returns:
+            float: y component of the pose translation in inches
+        """
+        return self.y*39.3701
 
     def get_z(self) -> float:
         """Gets the z component of the pose translation

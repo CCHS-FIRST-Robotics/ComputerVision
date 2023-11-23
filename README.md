@@ -20,6 +20,8 @@ Apriltag Marker Detection with [OpenCV ArUco](https://docs.opencv.org/4.x/de/d67
 ## Yolo
 You Only Look Once
 
+YOLO should (generally) be ran on the GPU. If your computer has an NVIDIA GPU, make sure you install CUDA and test that it is working properly [testing instructions here](https://stackoverflow.com/questions/48152674/how-do-i-check-if-pytorch-is-using-the-gpu)
+
 ## Video Streaming
 [Video streaming code](videostreaming/README.md)
 
