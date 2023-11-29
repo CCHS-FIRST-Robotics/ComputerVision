@@ -4,6 +4,6 @@ opencv-python
 opencv-contrib-python
 pyopengl
 scipy
-pynetworktables
+pyntcore
 
 ultralytics

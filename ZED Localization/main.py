@@ -9,12 +9,32 @@ import numpy.typing as npt
 from scipy.spatial.transform import Rotation #type: ignore
 import cv2 
 import pyzed.sl as sl # type: ignore
-from networktables import NetworkTables
+import ntcore
 
 
 # Initialize networktables instance
-NetworkTables.initialize(server="10.32.5.2")
-tags_table = NetworkTables.getTable("tags")
+n_table = ntcore.NetworkTableInstance.getDefault()
+# n_table.setServerTEAM(3205) # Connects to RIO server (running on robot)
+n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
+n_table.startClient4("Jetson NT") # Any name will work
+
+tags_table = n_table.getTable("tags")
+
+pose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
+pose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
+
+primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish();
+primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish();
+primaryTagYPub = tags_table.getDoubleTopic("primary_tag_y").publish();
+primaryTagZPub = tags_table.getDoubleTopic("primary_tag_z").publish();
+primaryTagHeadingPub = tags_table.getDoubleTopic("primary_tag_heading").publish();
+
+tagIdsPub = tags_table.getDoubleArrayTopic("tag_ids").publish();
+tagXsPub = tags_table.getDoubleArrayTopic("tag_xs").publish();
+tagYsPub = tags_table.getDoubleArrayTopic("tag_ys").publish();
+tagZsPub = tags_table.getDoubleArrayTopic("tag_zs").publish();
+tagHeadingsPub = tags_table.getDoubleArrayTopic("tag_headings").publish();
+
 
 # Create a ZED camera
 zed = sl.Camera()
@@ -44,6 +64,7 @@ while True:
     # Returns True if a new image is available, False otherwise
     if not detector.periodic():
         continue
+    timestamp = detector.timestamp
     
     pose = None
     match primary:
@@ -63,13 +84,13 @@ while True:
 
     pose_2d = pose.get_2d_pose().tolist()
     # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
-    pose_2d = pose_2d[1], pose_2d[0], pose_2d[2]
-    tags_table.putNumberArray("pose_estimate", pose_2d)
+    pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
+    pose2dPub.set(pose_2d)
     
     pose_3d = pose.get_3d_pose().tolist()
     # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (x, y, z, roll, pitch, yaw)
-    pose_3d = pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]
-    tags_table.putNumberArray("pose_estimate_3d", pose_3d)
+    pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
+    pose3dPub.set(pose_3d)
     
     tags = detector.get_detected_tags()
     tags_and_poses = []
@@ -83,30 +104,33 @@ while True:
         if not tag_pose:
             continue
         
-        tag_ids.append(tag.id)
+        tag_ids.append(float(tag.id))
         tag_xs.append(tag_pose.get_z())
         tag_ys.append(tag_pose.get_x())
         tag_headings.append(tag_pose.get_heading())
         
         tags_and_poses.append((tag, tag_pose))
     
-    tags_table.putNumberArray("tag_ids", tag_ids)
-    tags_table.putNumberArray("tag_xs", tag_xs)
-    tags_table.putNumberArray("tag_ys", tag_ys)
-    tags_table.putNumberArray("tag_headings", tag_headings)
+    tagIdsPub.set(tag_ids)
+    tagXsPub.set(tag_xs)
+    tagYsPub.set(tag_ys)
+    # tagZsPub.set(tag_zs)
+    tagHeadingsPub.set(tag_headings)
     
     tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
     primary_tag = tags_and_poses[0] if tags_and_poses else None
     if primary_tag:
-        tags_table.putNumber("primary_tag_id", primary_tag[0].id)
-        tags_table.putNumber("primary_tag_x", primary_tag[1].get_z())
-        tags_table.putNumber("primary_tag_y", primary_tag[1].get_x())
-        tags_table.putNumber("primary_tag_heading", primary_tag[1].get_heading())
+        primaryTagIdPub.set(primary_tag[0].id)
+        primaryTagXPub.set(primary_tag[1].get_z())
+        primaryTagYPub.set(primary_tag[1].get_x())
+        # primaryTagZPub.set(primary_tag[1].get_y())
+        primaryTagHeadingPub.set(primary_tag[1].get_heading())
     else:
-        tags_table.putNumber("primary_tag_id", -1)
-        tags_table.putNumber("primary_tag_x", -1)
-        tags_table.putNumber("primary_tag_y", -1)
-        tags_table.putNumber("primary_tag_heading", -1)
+        primaryTagIdPub.set(-1)
+        primaryTagXPub.set(-1)
+        primaryTagYPub.set(-1)
+        # primaryTagZPub.set(-1)
+        primaryTagHeadingPub.set(-1)
     
     # image = detector.get_image()
     # cv2.imshow("Image", image)
