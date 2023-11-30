@@ -18,18 +18,19 @@ class Pose:
             yaw (float): yaw (rotation about the z-axis) of the pose (radians)
         """
         self.x = x
+        # print(x)
         self.y = y
         self.z = z
         
         self.rotation = Rotation.from_euler('xyz', [roll, pitch, yaw], degrees=False)
         
     def __str__(self) -> str:
-        """Converts the Pose object into a string (x, z, pitch)
+        """Converts the Pose object into a string (x, z, pitch) in inches/degrees
 
         Returns:
             str: string representation of the Pose object
         """
-        return f"Pose:\nx: {self.x}\nz: {self.z}\npitch: {self.get_heading_degrees()}"
+        return f"Pose:  x: {round(self.get_x_inches(), 3)}  y: {round(self.get_y_inches(), 3)}  z: {round(self.get_z_inches(), 3)}  depth: {round(self.get_depth_inches(), 2)}  pitch: {round(self.get_heading_degrees(), 3)}"
     
     def get_2d_pose(self) -> npt.NDArray[np.float32]:
         """Gets the 2d pose (x, z, pitch) of the pose

@@ -98,7 +98,8 @@ class ZEDDetector:
         self.zed.retrieve_measure(self.depth, sl.MEASURE.DEPTH) # Retrieve depth Mat. Depth is aligned on the left image
         self.zed.retrieve_measure(self.point_cloud, sl.MEASURE.XYZRGBA) # Retrieve colored point cloud. Point cloud is aligned on the left image.
         self.zed.get_position(self.zed_pose, sl.REFERENCE_FRAME.WORLD) # Retrieve camera pose
-        self.timestamp = self.zed_pose.timestamp
+        # self.timestamp = self.zed_pose.timestamp
+        self.timestamp = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE).get_milliseconds()
         
         image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2GRAY)
         image_debug = self.image_zed.get_data()
@@ -106,7 +107,12 @@ class ZEDDetector:
         self.detected_tags = []
         tag_corners, tag_ids, rejected = aruco.detectMarkers(image, self.aruco_dict, None, parameters=self.parameters)
         for i, corners in enumerate(tag_corners):
-            tag = AprilTag(tag_ids[i][0], self.tag_size, "16h5", corners[0])
+            
+            # reformat the corners cuz opencv is fucking dumb
+            corners = corners[0]
+            corners = [corners[2], corners[3], corners[0], corners[1]]
+            
+            tag = AprilTag(tag_ids[i][0], self.tag_size, "16h5", corners) # type: ignore #NOTE figure out how to fix this later
             self.detected_tags.append(tag)
             tag.draw_tag(image_debug)
         self.annotated_image = image_debug
@@ -203,8 +209,22 @@ class ZEDDetector:
         if not self.detected_tags:
             return None
         
-        object_points = np.array([tag.get_corner_translations() for tag in self.detected_tags])
-        image_points = np.array([tag.corners for tag in self.detected_tags])
+        # object_points = np.array([tag.get_corner_translations() for tag in self.detected_tags])
+        # image_points = np.array([tag.corners for tag in self.detected_tags])
+        
+        #  TODO: figure out how to fix the typing for this
+        object_points = [] 
+        image_points = [] 
+        for tag in self.detected_tags:
+            # print(tag.corners)
+            # print(tag.get_corner_translations())
+            
+            for item in tag.get_corner_translations():
+                object_points.append(item)
+            for item in tag.corners:
+                image_points.append(item)
+        object_points = np.array(object_points) # type: ignore
+        image_points = np.array(image_points) # type: ignore
         
         # Find the camera pose using PnP
         # retval is a boolean indicating whether the function succeeded
@@ -222,7 +242,7 @@ class ZEDDetector:
         
         # transform from rotation vector to euler angles (rvec is a (3, 1) matrix, refSormat to (3,) matrix)
         r = Rotation.from_rotvec(rvec.T[0])
-        r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True)) # for some reason the natural orientation of the tag is upside down
+        # r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True)) # for some reason the natural orientation of the tag is upside down (aka opencv is stupid and now we dont need this cuz I fixed it elsewhere)
         
         # debug:
         # print(retval)
@@ -231,7 +251,8 @@ class ZEDDetector:
         
         if not retval:
             return None
-        return Pose(*tvec, *r.as_euler('xyz', degrees=False))
+        # print(*tvec.T[0])
+        return Pose(*tvec.T[0], *r.as_euler('xyz', degrees=False))
     
     def get_camera_pose_depth_average(self) -> Pose | None:
         """Estimates the camera pose using a mix of SQPnP and the ZED point cloud. 
@@ -304,6 +325,12 @@ class ZEDDetector:
         return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
     
     
+if __name__ == '__main__2':
+    poseT1 = Pose(0, 0, 0, 0, 0, 0).get_transformation_matrix()
+    poseT2 = Pose(1, 3, 4, 5, 0, 1).get_transformation_matrix()
+    poseT3 = poseT2.dot(poseT1)
+    print(poseT2 == poseT3)
+
 if __name__ == '__main__':
     
     # Create a ZED camera

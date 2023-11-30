@@ -57,6 +57,13 @@ tracking_parameters = sl.PositionalTrackingParameters()
 
 detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters, 0.1524, Pose(0, 0, 0, 0, 0, 0))
 
+
+# Resize the window to match the camera resolution (VERY IMPORTANT FOR TESTING -- WONT SHOW FULL IMAGE OTHERWISE)
+cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
+cv2.resizeWindow("Image", *detector.image_size)
+print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
+
+# Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
 while True:
     
@@ -77,11 +84,18 @@ while True:
     
     if pose:
         # Tranform the pose from the camera frame to the robot frame
-        pose = ZEDDetector.get_robot_pose(pose)
+        # pose = ZEDDetector.get_robot_pose(pose)
+        pass
     else:
         # If no pose is available, set the pose to a default value
         pose = Pose(-1, -1, -1, -1, -1, -1)
 
+    # For testing:
+    print()
+    for tag in detector.get_detected_tags():
+        print(f"Tag: {tag.id}")
+    print(f"{pose} at {timestamp}ms")
+    
     pose_2d = pose.get_2d_pose().tolist()
     # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
     pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
@@ -132,8 +146,8 @@ while True:
         # primaryTagZPub.set(-1)
         primaryTagHeadingPub.set(-1)
     
-    # image = detector.get_image()
-    # cv2.imshow("Image", image)
+    image = detector.get_image()
+    cv2.imshow("Image", image)
     
     key = cv2.waitKey(1)
     if key == ord('q'):
