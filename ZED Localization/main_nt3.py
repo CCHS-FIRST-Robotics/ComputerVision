@@ -75,13 +75,12 @@ while True:
     timestamp = detector.timestamp
     
     pose = None
-    match primary:
-        case "zed_pose":
-            pose = detector.get_camera_pose_zed()
-        case "pnp_pose":
-            pose = detector.get_camera_pose_pnp()
-        case "depth_pose":
-            pose = detector.get_camera_pose_depth_average()
+    if primary == "zed_pose":
+        pose = detector.get_camera_pose_zed()
+    elif primary == "pnp_pose":
+        pose = detector.get_camera_pose_pnp()
+    elif primary == "depth_pose":
+        pose = detector.get_camera_pose_depth_average()
     
     if pose:
         # Tranform the pose from the camera frame to the robot frame
