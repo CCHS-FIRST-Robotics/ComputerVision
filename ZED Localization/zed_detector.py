@@ -395,13 +395,13 @@ if __name__ == '__main__':
                 f.write(f"{round(depth / measurement_spacing) * measurement_spacing}, {depth}\n")
         
         pose = None
-        match primary:
-            case "zed_pose":
-                pose = detector.get_camera_pose_zed()
-            case "pnp_pose":
-                pose = detector.get_camera_pose_pnp()
-            case "depth_pose":
-                pose = detector.get_camera_pose_depth_average()
+        #match primary:
+        #    case "zed_pose":
+        #        pose = detector.get_camera_pose_zed()
+        #    case "pnp_pose":
+        #        pose = detector.get_camera_pose_pnp()
+        #    case "depth_pose":
+        #       pose = detector.get_camera_pose_depth_average()
                 
         if pose:
             print(f'Robot pose estimated at: {pose}')

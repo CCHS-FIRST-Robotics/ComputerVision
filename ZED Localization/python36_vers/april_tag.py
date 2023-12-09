@@ -1,7 +1,7 @@
 from typing import Any
 import cv2
 import cv2.typing as cvt
-import numpy.typing as npt
+#import numpy.typing as npt
 import numpy as np
 
 from pose import Pose
@@ -16,7 +16,7 @@ class AprilTag:
         3: Pose(1, 0.07, 0, 0, 0, 0),
     }
     
-    def __init__(self, tag_id: int, tag_size: float, tag_family: str, tag_corners: npt.NDArray) -> None:
+    def __init__(self, tag_id: int, tag_size: float, tag_family: str, tag_corners) -> None:
         """Initializes an AprilTag observation
 
         Args:
@@ -68,7 +68,7 @@ class AprilTag:
 
         return image
     
-    def get_world_translation(self) -> npt.NDArray[np.float32]:
+    def get_world_translation(self):
         """Gets the translation of the AprilTag in the world frame
 
         Returns:
@@ -76,7 +76,7 @@ class AprilTag:
         """
         return self.tag_poses[self.id].get_translation()
 
-    def get_corner_translations(self) -> npt.NDArray[np.float32]:
+    def get_corner_translations(self):
         """Gets the translation of each corner of the AprilTag in the world frame
 
         Returns:
