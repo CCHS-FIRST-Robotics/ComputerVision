@@ -5,7 +5,7 @@ from pose import Pose
 
 # Global Imports
 import numpy as np
-#import numpy.typing as npt
+##import numpy.typing as npt
 from scipy.spatial.transform import Rotation #type: ignore
 import cv2 
 import pyzed.sl as sl # type: ignore
@@ -61,9 +61,9 @@ detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters
 
 
 # Resize the window to match the camera resolution (VERY IMPORTANT FOR TESTING -- WONT SHOW FULL IMAGE OTHERWISE)
-#cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
-#cv2.resizeWindow("Image", *detector.image_size)
-#print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
+## cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
+## cv2.resizeWindow("Image", *detector.image_size)
+## print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
@@ -147,10 +147,10 @@ while True:
     #    tags_table.putNumber("primary_tag_heading", -1)
     
     print(f"FPS: {1/(float(time.time() - start))}")
-    #image = detector.get_image()
-    #cv2.imshow("Image", image)
+    ## image = detector.get_image()
+    ## cv2.imshow("Image", image)
     
-    #key = cv2.waitKey(1)
-    #if key == ord('q'):
-    #    break
+    ## key = cv2.waitKey(1)
+    ## if key == ord('q'):
+    # #    break
     
