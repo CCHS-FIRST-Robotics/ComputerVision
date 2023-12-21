@@ -24,13 +24,13 @@ class Pose:
         
         self.rotation = Rotation.from_euler('xyz', [roll, pitch, yaw], degrees=False)
         
-    def __str__(self) -> str:
-        """Converts the Pose object into a string (x, z, pitch) in inches/degrees
+    # def __str__(self) -> str:
+    #     """Converts the Pose object into a string (x, z, pitch) in inches/degrees
 
-        Returns:
-            str: string representation of the Pose object
-        """
-        return f"Pose:  x: {round(self.get_x_inches(), 3)}  y: {round(self.get_y_inches(), 3)}  z: {round(self.get_z_inches(), 3)}  depth: {round(self.get_depth_inches(), 2)}  pitch: {round(self.get_heading_degrees(), 3)}"
+    #     Returns:
+    #         str: string representation of the Pose object
+    #     """
+    #     return f"Pose:  x: {round(self.get_x_inches(), 3)}  y: {round(self.get_y_inches(), 3)}  z: {round(self.get_z_inches(), 3)}  depth: {round(self.get_depth_inches(), 2)}  pitch: {round(self.get_heading_degrees(), 3)}"
     
     def get_2d_pose(self) -> npt.NDArray[np.float32]:
         """Gets the 2d pose (x, z, pitch) of the pose
@@ -137,21 +137,21 @@ class Pose:
         """
         return np.linalg.norm([self.x, self.z])
     
-    def get_depth_inches(self) -> np.float32:
-        """Gets the depth in the xz plane in inches
+    # def get_depth_inches(self) -> np.float32:
+    #     """Gets the depth in the xz plane in inches
 
-        Returns:
-            np.float32: depth in the xz plane in inches
-        """
-        return np.linalg.norm([self.x, self.z])*39.3701
+    #     Returns:
+    #         np.float32: depth in the xz plane in inches
+    #     """
+    #     return np.linalg.norm([self.x, self.z])*(39.3701)
     
-    def get_transformation_matrix(self) -> npt.NDArray[np.float32]:
-        """Gets the 4x4 transformation matrix of the pose
+    # def get_transformation_matrix(self) -> npt.NDArray[np.float32]:
+    #     """Gets the 4x4 transformation matrix of the pose
 
-        Returns:
-            npt.NDArray[np.float32]: (4, 4) transformation matrix
-        """
-        return np.block([[self.rotation.as_matrix(), self.get_translation().reshape(3, 1)], [0, 0, 0, 1]])
+    #     Returns:
+    #         npt.NDArray[np.float32]: (4, 4) transformation matrix
+    #     """
+    #     return np.block([[self.rotation.as_matrix(), self.get_translation().reshape(3, 1)], [0, 0, 0, 1]])
     
     @staticmethod
     def from_transformation_matrix(matrix: npt.NDArray[np.float32]) -> Pose:

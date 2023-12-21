@@ -18,22 +18,9 @@ n_table = ntcore.NetworkTableInstance.getDefault()
 n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
 n_table.startClient4("Jetson NT") # Any name will work
 
-tags_table = n_table.getTable("tags")
+spoons_table = n_table.getTable("spoons")
 
-pose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
-pose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
-
-primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish();
-primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish();
-primaryTagYPub = tags_table.getDoubleTopic("primary_tag_y").publish();
-primaryTagZPub = tags_table.getDoubleTopic("primary_tag_z").publish();
-primaryTagHeadingPub = tags_table.getDoubleTopic("primary_tag_heading").publish();
-
-tagIdsPub = tags_table.getDoubleArrayTopic("tag_ids").publish();
-tagXsPub = tags_table.getDoubleArrayTopic("tag_xs").publish();
-tagYsPub = tags_table.getDoubleArrayTopic("tag_ys").publish();
-tagZsPub = tags_table.getDoubleArrayTopic("tag_zs").publish();
-tagHeadingsPub = tags_table.getDoubleArrayTopic("tag_headings").publish();
+spoonPosePub = spoons_table.getDoubleArrayTopic("pose_estimate").publish();
 
 
 # Create a ZED camera

@@ -9,6 +9,7 @@ from scipy.spatial.transform import Rotation #type: ignore
 import sys
 import math
 from typing import List, Tuple, Union
+from ultralytics import YOLO
 
 # Local imports
 from pose import Pose
@@ -17,7 +18,8 @@ from april_tag import AprilTag
 class ZEDDetector:
     
     # Transformation matrix from the camera frame to the robot frame
-    camera_to_robot_transformation = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0).get_transformation_matrix()
+    # camera_to_robot_transformation = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0).get_transformation_matrix()
+    model = YOLO("yolo-Weights/yolov8x.pt")
     
     def __init__(self, zed, init_params, runtime_params, tracking_params, tag_size: float, initial_pose: Pose) -> None:
         """Initializes the ZED camera and AprilTag detector
@@ -80,6 +82,7 @@ class ZEDDetector:
         self.annotated_image = np.array([])
         self.timestamp = 0
         self.detected_tags: List[AprilTag] = []
+        self.spoons = []
         
         # Set the initial pose of the camera
         self.intial_pose = initial_pose
@@ -101,22 +104,19 @@ class ZEDDetector:
         # self.timestamp = self.zed_pose.timestamp
         self.timestamp = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE).get_milliseconds()
         
-        image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2RGB)
+        # image = self.image_zed.get_data()
         image_debug = self.image_zed.get_data()
-        
-        self.detected_tags = []
-        tag_corners, tag_ids, rejected = aruco.detectMarkers(image, self.aruco_dict, None, parameters=self.parameters)
-        for i, corners in enumerate(tag_corners):
-            
-            # reformat the corners cuz opencv is fucking dumb
-            corners = corners[0]
-            corners = [corners[2], corners[3], corners[0], corners[1]]
-            
-            tag = AprilTag(tag_ids[i][0], self.tag_size, "16h5", corners) # type: ignore #NOTE figure out how to fix this later
-            self.detected_tags.append(tag)
-            tag.draw_tag(image_debug)
         self.annotated_image = image_debug
         
+        self.spoons = []
+        results = self.model(image, stream=True)
+        for r in results:
+            for b in r.boxes:
+                cls = int(b.cls[0])
+                if cls == 73:
+                    self.spoons.append(b)        
+        print(len(self.spoons))
         return True
     
     def get_detected_tags(self) -> List[AprilTag]:
@@ -160,41 +160,78 @@ class ZEDDetector:
             return np.array([-1, -1, -1])
             raise Exception
 
-        #print("Distance to Camera at ({}, {}) (image center): {:1.3} m.".format(x, y, distance), end="\r")
+        print("Distance to Camera at ({}, {}) (image center): {:1.3} m.".format(x, y, np.linalg.norm(point_cloud_value[0:3])), end="\r")
         # sys.stdout.flush()
         # print(point_cloud_value)
         return np.array(point_cloud_value[0:3])
     
-    def get_tag_pose(self, tag: AprilTag) -> Pose | None:
-        """Gets the pose of the given AprilTag relative to the robot
+    # def get_tag_pose(self, tag: AprilTag) -> Pose | None:
+    #     """Gets the pose of the given AprilTag relative to the robot
 
-        Args:
-            tag (AprilTag): AprilTag of interest
+    #     Args:
+    #         tag (AprilTag): AprilTag of interest
 
-        Returns:
-            Pose | None: Pose of the AprilTag relative to the robot; None if solvePnP fails
-        """
+    #     Returns:
+    #         Pose | None: Pose of the AprilTag relative to the robot; None if solvePnP fails
+    #     """
         
-        object_points = np.array(tag.get_corner_translations())
-        image_points = np.array(tag.corners)
+    #     object_points = np.array(tag.get_corner_translations())
+    #     image_points = np.array(tag.corners)
         
-        retval, rvec, tvec = cv2.solvePnP(
-            object_points,
-            image_points,
-            self.left_camera_matrix,
-            self.left_distortion,
-            flags=cv2.SOLVEPNP_IPPE_SQUARE
-        )
+    #     retval, rvec, tvec = cv2.solvePnP(
+    #         object_points,
+    #         image_points,
+    #         self.left_camera_matrix,
+    #         self.left_distortion,
+    #         flags=cv2.SOLVEPNP_IPPE_SQUARE
+    #     )
         
-        displacement = self.get_displacement(tag.center)
+    #     displacement = self.get_displacement(tag.center)
+    #     if not np.isnan(displacement[0]):
+    #         tvec = displacement
+        
+    #     rotation = Rotation.from_rotvec(rvec.T[0]).as_euler('xyz', degrees=False)
+        
+    #     if not retval:
+    #         return None
+    #     return self.get_robot_pose(Pose(*tvec, *rotation))
+    
+    def get_object_pose(self, spoon) -> npt.NDArray[np.float32] | None:
+        # get detected objects in the image
+        # results = self.model(image, stream=True)
+        # for r in results:
+                # get what it thinks it is & check if it is #44 (spoon)
+        x1, y1, x2, y2 = spoon.xyxy[0]
+        x1, y1, x2, y2, = int(x1), int(y1), int(x2), int(y2)
+        x_center = (x1 + x2) // 2
+        y_center = (y1 + y2) // 2
+        coords = x_center, y_center
+        
+           
+        displacement = self.get_displacement(coords)
         if not np.isnan(displacement[0]):
-            tvec = displacement
+            return displacement
         
-        rotation = Rotation.from_rotvec(rvec.T[0]).as_euler('xyz', degrees=False)
+    def draw_object(self, spoon, image):
         
-        if not retval:
-            return None
-        return self.get_robot_pose(Pose(*tvec, *rotation))
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 1
+        color = (255, 0, 0)
+        thickness = 2
+
+        x1, y1, x2, y2 = spoon.xyxy[0]
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+        conf = spoon.conf[0]
+        displacement = self.get_object_pose(spoon)
+        d_txt = f"{np.round(np.linalg.norm(displacement), 2)}" if displacement is not None else "NaN" # type: ignore
+        txt = f"book {conf:.2f} at {d_txt}m" 
+
+        cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 255), 1)
+        cv2.putText(image, txt, (x1, y1), font, fontScale, color, thickness)
+        
+    def get_spoons(self):
+        return self.spoons
     
     def get_camera_pose_pnp(self) -> Pose | None:
         """Estimates the camera pose using SQPnP (https://www.ecva.net///papers/eccv_2020/papers_ECCV/papers/123460460.pdf)
@@ -312,24 +349,24 @@ class ZEDDetector:
         return self.intial_pose + Pose(*self.zed_pose.get_translation().get(), *orientation)
     
     # NOTE: shouldn't be static in the future, but we haven't decided on which method to use for camera pose estimation yet
-    @staticmethod
-    def get_robot_pose(camera_pose: Pose) -> Pose:
-        """Get the robot pose from the camera pose
+    # @staticmethod
+    # def get_robot_pose(camera_pose: Pose) -> Pose:
+    #     """Get the robot pose from the camera pose
 
-        Args:
-            camera_pose (Pose): Camera pose in the world frame
+    #     Args:
+    #         camera_pose (Pose): Camera pose in the world frame
 
-        Returns:
-            Pose: Robot pose in the world frame
-        """
-        return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
+    #     Returns:
+    #         Pose: Robot pose in the world frame
+    #     """
+    #     return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
     
     
-if __name__ == '__main__2':
-    poseT1 = Pose(0, 0, 0, 0, 0, 0).get_transformation_matrix()
-    poseT2 = Pose(1, 3, 4, 5, 0, 1).get_transformation_matrix()
-    poseT3 = poseT2.dot(poseT1)
-    print(poseT2 == poseT3)
+# if __name__ == '__main__2':
+    # poseT1 = Pose(0, 0, 0, 0, 0, 0).get_transformation_matrix()
+    # poseT2 = Pose(1, 3, 4, 5, 0, 1).get_transformation_matrix()
+    # poseT3 = poseT2.dot(poseT1)
+    # print(poseT2 == poseT3)
 
 if __name__ == '__main__':
     
@@ -338,9 +375,9 @@ if __name__ == '__main__':
     
     # Create configuration parameters
     init_params = sl.InitParameters()
-    init_params.depth_mode = sl.DEPTH_MODE.ULTRA # Set the depth mode to performance (fastest)
+    init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
     init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-    init_params.camera_resolution = sl.RESOLUTION.HD2K
+    init_params.camera_resolution = sl.RESOLUTION.HD720
     init_params.depth_minimum_distance = .3
     
     # Create and set RuntimeParameters after opening the camera
@@ -370,43 +407,17 @@ if __name__ == '__main__':
         if not detector.periodic():
             continue
         
-        if recording:
-            with open("zed_pose.csv", 'a') as f:
-                # always returns a value (I think lol), since it doesn't use tags
-                depth = detector.get_camera_pose_zed().get_translation_inches()[2]
-                f.write(f"{round(depth / measurement_spacing) * measurement_spacing}, {depth}\n")
-            
-            with open("pnp_pose.csv", 'a') as f:
-                depth = detector.get_camera_pose_pnp()
-                # depth will return None if no tags are found or PnP fails
-                if not depth:
-                    f.write(f"{-1}, {-1}\n")
-                    continue
-                depth = depth.get_translation_inches()[2]
-                f.write(f"{round(depth / measurement_spacing) * measurement_spacing}, {depth}\n")
-
-            with open("depth_pose.csv", 'a') as f:
-                depth = detector.get_camera_pose_depth_average()
-                # depth will return None if no tags are found or PnP fails
-                if not depth:
-                    f.write(f"{-1}, {-1}\n")
-                    continue
-                depth = depth.get_translation_inches()[2]
-                f.write(f"{round(depth / measurement_spacing) * measurement_spacing}, {depth}\n")
-        
         pose = None
-        #match primary:
-        #    case "zed_pose":
-        #        pose = detector.get_camera_pose_zed()
-        #    case "pnp_pose":
-        #        pose = detector.get_camera_pose_pnp()
-        #    case "depth_pose":
-        #       pose = detector.get_camera_pose_depth_average()
+        image = detector.get_image()
+        
+        spoons = detector.get_spoons()
+        for spoon in spoons:
+            displacement = detector.get_object_pose(spoon)
+            detector.draw_object(spoon, image)
                 
         if pose:
-            print(f'Robot pose estimated at: {pose}')
+            print(f'Object pose estimated at: {pose}')
         
-        image = detector.get_image()
         cv2.imshow("Image", image)
         
         key = cv2.waitKey(1)
