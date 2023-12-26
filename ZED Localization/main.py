@@ -17,7 +17,7 @@ import ntcore
 n_table = ntcore.NetworkTableInstance.getDefault()
 # n_table.setServerTEAM(3205) # Connects to RIO server (running on robot)
 n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
-n_table.startClient4("Jetson NT") # Any name will work
+n_table.startClient4("Jetson Orin Nano (NT4)") # Any name will work
 
 tags_table = n_table.getTable("tags")
 
@@ -44,7 +44,7 @@ zed = sl.Camera()
 init_params = sl.InitParameters()
 init_params.depth_mode = sl.DEPTH_MODE.ULTRA # Set the depth mode to performance (fastest)
 init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-init_params.camera_resolution = sl.RESOLUTION.HD2K
+init_params.camera_resolution = sl.RESOLUTION.HD1080
 init_params.depth_minimum_distance = .3
 
 # Create and set RuntimeParameters after opening the camera

@@ -14,7 +14,7 @@ n_table.startClient4("Jetson NT") # Any name will work
 
 tags_table = n_table.getTable("tags")
 
-num = tags_table.getDoubleTopic("primary_tag_x").publish()
+num = tags_table.getDoubleTopic("num").publish()
 
 while True:
     num.set(1.0)
