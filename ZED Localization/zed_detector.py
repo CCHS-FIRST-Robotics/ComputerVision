@@ -17,7 +17,7 @@ from april_tag import AprilTag
 class ZEDDetector:
     
     # Transformation matrix from the camera frame to the robot frame
-    camera_to_robot_transformation = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0).get_transformation_matrix()
+    camera_to_robot_transformation = Pose(0.0, 0.0, -0.3, 0.0, 0.0, 0.0).get_transformation_matrix()
     
     def __init__(self, zed, init_params, runtime_params, tracking_params, tag_size: float, initial_pose: Pose) -> None:
         """Initializes the ZED camera and AprilTag detector

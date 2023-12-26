@@ -93,7 +93,7 @@ while True:
 
     # For testing:
     print()
-    print(f"Tag: {tag.id}")
+    # print(f"Tag: {tag.id}")
     print(f"{pose} at {timestamp}ms")
     
     pose_2d = pose.get_2d_pose().tolist()

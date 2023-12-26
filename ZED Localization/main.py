@@ -1,4 +1,5 @@
 # Local Imports
+import time
 from zed_detector import ZEDDetector
 from april_tag import AprilTag
 from pose import Pose
@@ -66,7 +67,7 @@ print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
 while True:
-    
+    start = time.time()
     # Run the periodic function to update the image, depth, and pose data
     # Returns True if a new image is available, False otherwise
     if not detector.periodic():
@@ -146,6 +147,7 @@ while True:
         # primaryTagZPub.set(-1)
         primaryTagHeadingPub.set(-1)
     
+    print(f"FPS: {1/(float(time.time() - start))}")
     image = detector.get_image()
     cv2.imshow("Image", image)
     
