@@ -42,9 +42,9 @@ zed = sl.Camera()
 
 # Create configuration parameters
 init_params = sl.InitParameters()
-init_params.depth_mode = sl.DEPTH_MODE.ULTRA # Set the depth mode to performance (fastest)
+init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
 init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-init_params.camera_resolution = sl.RESOLUTION.HD1080
+init_params.camera_resolution = sl.RESOLUTION.HD720
 init_params.depth_minimum_distance = .3
 
 # Create and set RuntimeParameters after opening the camera
@@ -66,6 +66,7 @@ print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
+fps_lst = []
 while True:
     start = time.time()
     # Run the periodic function to update the image, depth, and pose data
@@ -147,7 +148,14 @@ while True:
         # primaryTagZPub.set(-1)
         primaryTagHeadingPub.set(-1)
     
-    print(f"FPS: {1/(float(time.time() - start))}")
+    fps = 1/(float(time.time() - start))
+    if len(fps_lst) < 100:
+        fps_lst.append(fps)
+    else:
+        fps_lst.pop(0)
+        fps_lst.append(fps)
+
+    print(f"FPS: {round(fps)}, avg: {sum(fps_lst)/len(fps_lst)}")
     image = detector.get_image()
     cv2.imshow("Image", image)
     

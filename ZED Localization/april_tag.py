@@ -36,7 +36,7 @@ class AprilTag:
         # Divide by 4 to get the center (this process is basically taking the average pixel value of the corners)
         self.center = (round(x_sum/4), round(y_sum/4))
         
-    def draw_tag(self, image: cvt.MatLike) -> cvt.MatLike:
+    def draw_tag(self, image: cvt.MatLike, color=(0, 0, 255)) -> cvt.MatLike:
         """Draws the AprilTag on an image
 
         Args:
@@ -51,19 +51,21 @@ class AprilTag:
         corner_03 = (int(self.corners[2][0]), int(self.corners[2][1]))
         corner_04 = (int(self.corners[3][0]), int(self.corners[3][1]))
 
-        cv2.circle(image, (center[0], center[1]), 5, (0, 0, 255), 2)
+        color_inverted = (255 - color[0], 255 - color[1], 255 - color[2])
+ 
+        cv2.circle(image, (center[0], center[1]), 5, color_inverted, 2)
 
         cv2.line(image, (corner_01[0], corner_01[1]),
-                (corner_02[0], corner_02[1]), (255, 0, 0), 2)
+                (corner_02[0], corner_02[1]), color, 2)
         cv2.line(image, (corner_02[0], corner_02[1]),
-                (corner_03[0], corner_03[1]), (255, 0, 0), 2)
+                (corner_03[0], corner_03[1]), color, 2)
         cv2.line(image, (corner_03[0], corner_03[1]),
-                (corner_04[0], corner_04[1]), (0, 255, 0), 2)
+                (corner_04[0], corner_04[1]), color, 2)
         cv2.line(image, (corner_04[0], corner_04[1]),
-                (corner_01[0], corner_01[1]), (0, 255, 0), 2)
+                (corner_01[0], corner_01[1]), color, 2)
 
         cv2.putText(image, str(self.id), (center[0] - 10, center[1] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.75, color_inverted, 2, cv2.LINE_AA)
         #cv2.putText(image, f"({round(center[0])}, {round(center[1])})", (center[0] - 10, center[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2, cv2.LINE_AA)
 
         return image

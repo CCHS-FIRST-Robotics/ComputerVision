@@ -1,11 +1,16 @@
 # Global imports
 import pyzed.sl as sl #type: ignore 
+
 import cv2
 from cv2 import aruco # NOTE: This is the opencv-contrib-python package, not the opencv-python package
 import cv2.typing as cvt
+
+from dt_apriltags import Detector
+
 import numpy as np
 import numpy.typing as npt
 from scipy.spatial.transform import Rotation #type: ignore
+
 import sys
 import math
 from typing import List, Tuple, Union
@@ -72,9 +77,25 @@ class ZEDDetector:
         self.left_distortion = np.array(self.calibration_params.left_cam.disto)
         
         # Initialize the aruco dictionary and parameters
-        self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
+        self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_36H11)
         self.parameters = aruco.DetectorParameters()
         self.tag_size = tag_size
+
+        # self.parameters.aprilTagQuadDecimate = 1.5
+        # self.parameters.aprilTagQuadSigma = 0.8
+        # self.parameters.
+
+        # Initialize the apriltag detctor/parameters
+        self.at_detector = Detector(
+            families='tag36h11',
+            nthreads=6,
+            quad_decimate=1.5,
+            quad_sigma=0.8,
+            refine_edges=1,
+            decode_sharpening=.25,
+            debug=0,
+            searchpath=['apriltags']
+        )
         
         # Initialize the variables updated in the periodic function
         self.annotated_image = np.array([])
@@ -104,7 +125,14 @@ class ZEDDetector:
         image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2GRAY)
         image_debug = self.image_zed.get_data()
         
-        self.detected_tags = []
+        self.detected_tags = self.detect_tags_apriltag(image, image_debug, draw_tags=True)
+        # self.detected_tags = self.detect_tags_aruco(image, image_debug, draw_tags=True)
+        
+        
+        return True
+    
+    def detect_tags_aruco(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
+        detected_tags = []
         tag_corners, tag_ids, rejected = aruco.detectMarkers(image, self.aruco_dict, None, parameters=self.parameters)
         for i, corners in enumerate(tag_corners):
             
@@ -112,12 +140,33 @@ class ZEDDetector:
             corners = corners[0]
             corners = [corners[2], corners[3], corners[0], corners[1]]
             
-            tag = AprilTag(tag_ids[i][0], self.tag_size, "16h5", corners) # type: ignore #NOTE figure out how to fix this later
-            self.detected_tags.append(tag)
-            tag.draw_tag(image_debug)
+            tag = AprilTag(tag_ids[i][0], self.tag_size, "36h11", corners) # type: ignore #NOTE: figure out how to fix this later
+            detected_tags.append(tag)
+
+            if draw_tags:
+                tag.draw_tag(image_debug, color=(255, 0, 0))
+
         self.annotated_image = image_debug
-        
-        return True
+        return detected_tags
+    
+    def detect_tags_apriltag(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
+        detected_tags = []
+        tags = self.at_detector.detect(image, estimate_tag_pose=False, camera_params=None, tag_size=None)
+        for tag in tags:
+            
+            # reformat the corners 
+            corners = tag.corners
+            corners = [corners[3], corners[2], corners[1], corners[0]]
+            # print(corners)
+            
+            tag = AprilTag(tag.tag_id, self.tag_size, str(tag.tag_family), corners) # type: ignore #NOTE figure out how to fix this later
+            detected_tags.append(tag)
+
+            if draw_tags:
+                tag.draw_tag(image_debug, color=(0, 0, 255))
+
+        self.annotated_image = image_debug
+        return detected_tags
     
     def get_detected_tags(self) -> List[AprilTag]:
         """Gets the list of detected AprilTags
