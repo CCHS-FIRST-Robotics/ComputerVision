@@ -311,6 +311,14 @@ class ZEDDetector:
         orientation = [orientation[2], orientation[0], orientation[1]]
         return self.intial_pose + Pose(*self.zed_pose.get_translation().get(), *orientation)
     
+    def get_zed_pose_covar(self):
+        """Get the covariance of the ZED Visual Odometry
+
+        Returns:
+            npt.NDArray[np.float32]: (6, 6) covariance matrix
+        """
+        return self.zed_pose.pose_covariance.get()
+    
     # NOTE: shouldn't be static in the future, but we haven't decided on which method to use for camera pose estimation yet
     @staticmethod
     def get_robot_pose(camera_pose: Pose) -> Pose:

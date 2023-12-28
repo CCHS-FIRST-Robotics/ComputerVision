@@ -21,11 +21,11 @@ n_table.startClient4("Jetson Orin Nano (NT4)") # Any name will work
 
 tags_table = n_table.getTable("tags")
 
-tagPose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
+# tagPose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
 tagPose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
 
 zedPosePub = tags_table.getDoubleArrayTopic("zed_pose_estimate").publish();
-zedCovarPub = tags_table.getDoubleArrayTopic("zed_pose_covar").publish();
+# zedCovarPub = tags_table.getDoubleArrayTopic("zed_pose_covar").publish();
 
 primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish();
 primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish();
@@ -73,6 +73,7 @@ print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
 fps_lst = []
+pose_reset = False
 while True:
     start = time.time()
     # Run the periodic function to update the image, depth, and pose data
@@ -81,18 +82,23 @@ while True:
         continue
     timestamp = detector.timestamp
     
-    pose = None
-    match primary:
-        case "zed_pose":
-            pose = detector.get_camera_pose_zed()
-        case "pnp_pose":
-            pose = detector.get_camera_pose_pnp()
-        case "depth_pose":
-            pose = detector.get_camera_pose_depth_average()
+    # pose = None
+    # match primary:
+    #     case "zed_pose":
+    #         pose = detector.get_camera_pose_zed()
+    #     case "pnp_pose":
+    #         pose = detector.get_camera_pose_pnp()
+    #     case "depth_pose":
+    #         pose = detector.get_camera_pose_depth_average()
+    pose = detector.get_camera_pose_pnp()
     
     if pose:
+        if not pose_reset:
+            pose_reset = True
+            detector.reset_camera_pose(pose)
+            
         # Tranform the pose from the camera frame to the robot frame
-        # pose = ZEDDetector.get_robot_pose(pose)
+        pose = ZEDDetector.get_robot_pose(pose)
         pass
     else:
         # If no pose is available, set the pose to a default value
@@ -104,14 +110,21 @@ while True:
         print(f"Tag: {tag.id}")
     print(f"{pose} at {timestamp}ms")
     
-    pose_2d = pose.get_2d_pose().tolist()
-    # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
-    pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
-    tagPose2dPub.set(pose_2d)
+    zedPose = ZEDDetector.get_robot_pose(detector.get_camera_pose_zed()).get_as_wpi_pose()
+    zedCovar = detector.get_zed_pose_covar()
+    zedCovar = np.diagonal(zedCovar) # WPILib pose estimators assume independent variables
+    # print(zedCovar)
+    zedPosePub.set(zedPose.get_3d_pose().tolist() + zedCovar.tolist())
     
-    pose_3d = pose.get_3d_pose().tolist()
+    
+    # pose_2d = pose.get_2d_pose().tolist()
+    # # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
+    # pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
+    # # tagPose2dPub.set(pose_2d)
+    
+    pose_3d = pose.get_as_wpi_pose().get_3d_pose().tolist()
     # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (z, x, y, yaw, roll, pitch)
-    pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
+    # pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
     tagPose3dPub.set(pose_3d)
     
     tags = detector.get_detected_tags()
@@ -141,6 +154,9 @@ while True:
         
         tags_and_poses.append((tag, tag_pose))
     
+    if len(tag_ids) != len(tag_xs):
+        print(len(tag_ids), len(tag_xs))
+        print("BAD THING")
     tagIdsPub.set(tag_ids)
     tagXsPub.set(tag_xs)
     tagYsPub.set(tag_ys)

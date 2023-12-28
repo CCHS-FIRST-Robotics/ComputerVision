@@ -1,4 +1,6 @@
 import ntcore
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 # Initialize networktables instance

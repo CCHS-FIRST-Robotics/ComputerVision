@@ -5,7 +5,7 @@ import cv2
 from cv2 import aruco # NOTE: This is the opencv-contrib-python package, not the opencv-python package
 import cv2.typing as cvt
 
-from dt_apriltags import Detector
+# from dt_apriltags import Detector
 
 import numpy as np
 import numpy.typing as npt
@@ -86,16 +86,16 @@ class ZEDDetector:
         # self.parameters.
 
         # Initialize the apriltag detctor/parameters
-        self.at_detector = Detector(
-            families='tag36h11',
-            nthreads=6,
-            quad_decimate=1.5,
-            quad_sigma=0.8,
-            refine_edges=1,
-            decode_sharpening=.25,
-            debug=0,
-            searchpath=['apriltags']
-        )
+        # self.at_detector = Detector(
+        #     families='tag36h11',
+        #     nthreads=6,
+        #     quad_decimate=1.5,
+        #     quad_sigma=0.8,
+        #     refine_edges=1,
+        #     decode_sharpening=.25,
+        #     debug=0,
+        #     searchpath=['apriltags']
+        # )
         
         # Initialize the variables updated in the periodic function
         self.annotated_image = np.array([])
@@ -125,8 +125,8 @@ class ZEDDetector:
         image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2GRAY)
         image_debug = self.image_zed.get_data()
         
-        self.detected_tags = self.detect_tags_apriltag(image, image_debug, draw_tags=True)
-        # self.detected_tags = self.detect_tags_aruco(image, image_debug, draw_tags=True)
+        # self.detected_tags = self.detect_tags_apriltag(image, image_debug, draw_tags=True)
+        self.detected_tags = self.detect_tags_aruco(image, image_debug, draw_tags=True)
         
         
         return True
@@ -149,24 +149,24 @@ class ZEDDetector:
         self.annotated_image = image_debug
         return detected_tags
     
-    def detect_tags_apriltag(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
-        detected_tags = []
-        tags = self.at_detector.detect(image, estimate_tag_pose=False, camera_params=None, tag_size=None)
-        for tag in tags:
+    # def detect_tags_apriltag(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
+    #     detected_tags = []
+    #     tags = self.at_detector.detect(image, estimate_tag_pose=False, camera_params=None, tag_size=None)
+    #     for tag in tags:
             
-            # reformat the corners 
-            corners = tag.corners
-            corners = [corners[3], corners[2], corners[1], corners[0]]
-            # print(corners)
+    #         # reformat the corners 
+    #         corners = tag.corners
+    #         corners = [corners[3], corners[2], corners[1], corners[0]]
+    #         # print(corners)
             
-            tag = AprilTag(tag.tag_id, self.tag_size, str(tag.tag_family), corners) # type: ignore #NOTE figure out how to fix this later
-            detected_tags.append(tag)
+    #         tag = AprilTag(tag.tag_id, self.tag_size, str(tag.tag_family), corners) # type: ignore #NOTE figure out how to fix this later
+    #         detected_tags.append(tag)
 
-            if draw_tags:
-                tag.draw_tag(image_debug, color=(0, 0, 255))
+    #         if draw_tags:
+    #             tag.draw_tag(image_debug, color=(0, 0, 255))
 
-        self.annotated_image = image_debug
-        return detected_tags
+    #     self.annotated_image = image_debug
+    #     return detected_tags
     
     def get_detected_tags(self) -> List[AprilTag]:
         """Gets the list of detected AprilTags
@@ -347,7 +347,17 @@ class ZEDDetector:
         if not retval:
             return None
         return Pose(*tvec, *r.as_euler('xyz', degrees=False))
-        
+    
+    def reset_camera_pose(self, pose: Pose) -> None:
+        """Resets the camera pose to the given pose
+
+        Args:
+            pose (Pose): Pose to reset the camera to
+        """
+        translation = sl.Translation(*pose.get_translation())
+        rotation = sl.Rotation()
+        rotation.set_euler_angles(*pose.get_orientation())
+        self.zed.reset_positional_tracking(sl.Transform(rotation, translation))
     
     def get_camera_pose_zed(self) -> Pose:
         """Get the camera pose using the ZED Visual Odometry
@@ -359,6 +369,14 @@ class ZEDDetector:
         orientation = self.zed_pose.get_euler_angles(radian=True)
         orientation = [orientation[2], orientation[0], orientation[1]]
         return self.intial_pose + Pose(*self.zed_pose.get_translation().get(), *orientation)
+    
+    def get_zed_pose_covar(self) -> npt.NDArray[np.float32]:
+        """Get the covariance of the ZED Visual Odometry
+
+        Returns:
+            npt.NDArray[np.float32]: (6, 6) covariance matrix
+        """
+        return self.zed_pose.pose_covariance.reshape(6, 6)
     
     # NOTE: shouldn't be static in the future, but we haven't decided on which method to use for camera pose estimation yet
     @staticmethod

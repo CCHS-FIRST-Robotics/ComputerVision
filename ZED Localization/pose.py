@@ -54,7 +54,7 @@ class Pose:
         Returns:
             npt.NDArray[np.float32]: (6,) WPILib pose
         """
-        return Pose(self.z, self.x, -self.y, *Rotation.as_euler(self.rotation, 'zxy'))
+        return Pose(self.z, -self.x, -self.y, *Rotation.as_euler(self.rotation, 'zxy'))
     
     def get_heading(self) -> float:
         """Gets the heading of the pose
@@ -160,6 +160,14 @@ class Pose:
             npt.NDArray[np.float32]: (3,) translation vector in inches
         """
         return self.get_translation() * 39.3701
+    
+    def get_orientation(self) -> npt.NDArray[np.float32]:
+        """Gets the orientation of the pose
+
+        Returns:
+            npt.NDArray[np.float32]: (3,) orientation vector
+        """
+        return Rotation.as_euler(self.rotation, 'xyz')
     
     def get_depth(self) -> np.float32:
         """Gets the depth in the xz plane

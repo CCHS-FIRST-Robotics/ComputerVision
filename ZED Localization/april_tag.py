@@ -11,9 +11,9 @@ class AprilTag:
     # Positions of each tag id in the world frame
     tag_poses = {
         0: Pose(0, 0, 0, 0, 0, 0),
-        1: Pose(0, 0, 1, 0, 0, 0),
-        2: Pose(0, 0, 0, 0, 0, 0),
-        3: Pose(1, 0.07, 0, 0, 0, 0),
+        1: Pose(1, 0, 0, 0, 0, 0),
+        2: Pose(2, 0, 0, 0, 0, 0),
+        3: Pose(3, 0, 0, 0, 0, 0),
     }
     
     def __init__(self, tag_id: int, tag_size: float, tag_family: str, tag_corners: npt.NDArray) -> None:
