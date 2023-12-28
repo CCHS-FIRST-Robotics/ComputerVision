@@ -21,21 +21,27 @@ n_table.startClient4("Jetson Orin Nano (NT4)") # Any name will work
 
 tags_table = n_table.getTable("tags")
 
-pose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
-pose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
+tagPose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
+tagPose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
+
+zedPosePub = tags_table.getDoubleArrayTopic("zed_pose_estimate").publish();
+zedCovarPub = tags_table.getDoubleArrayTopic("zed_pose_covar").publish();
 
 primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish();
 primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish();
 primaryTagYPub = tags_table.getDoubleTopic("primary_tag_y").publish();
 primaryTagZPub = tags_table.getDoubleTopic("primary_tag_z").publish();
+primaryTagRollPub = tags_table.getDoubleTopic("primary_tag_roll").publish();
+primaryTagPitchPub = tags_table.getDoubleTopic("primary_tag_pitch").publish();
 primaryTagHeadingPub = tags_table.getDoubleTopic("primary_tag_heading").publish();
 
 tagIdsPub = tags_table.getDoubleArrayTopic("tag_ids").publish();
 tagXsPub = tags_table.getDoubleArrayTopic("tag_xs").publish();
 tagYsPub = tags_table.getDoubleArrayTopic("tag_ys").publish();
 tagZsPub = tags_table.getDoubleArrayTopic("tag_zs").publish();
+tagRollsPub = tags_table.getDoubleArrayTopic("tag_rolls").publish();
+tagPitchesPub = tags_table.getDoubleArrayTopic("tag_pitches").publish();
 tagHeadingsPub = tags_table.getDoubleArrayTopic("tag_headings").publish();
-
 
 # Create a ZED camera
 zed = sl.Camera()
@@ -101,18 +107,21 @@ while True:
     pose_2d = pose.get_2d_pose().tolist()
     # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
     pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
-    pose2dPub.set(pose_2d)
+    tagPose2dPub.set(pose_2d)
     
     pose_3d = pose.get_3d_pose().tolist()
-    # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (x, y, z, roll, pitch, yaw)
+    # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (z, x, y, yaw, roll, pitch)
     pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
-    pose3dPub.set(pose_3d)
+    tagPose3dPub.set(pose_3d)
     
     tags = detector.get_detected_tags()
     tags_and_poses = []
     tag_ids = []
-    tag_ys = []
     tag_xs = []
+    tag_ys = []
+    tag_zs = []
+    tag_rolls = []
+    tag_pitches = []
     tag_headings = []
     
     for tag in tags:
@@ -121,31 +130,44 @@ while True:
             continue
         
         tag_ids.append(float(tag.id))
-        tag_xs.append(tag_pose.get_z())
-        tag_ys.append(tag_pose.get_x())
-        tag_headings.append(tag_pose.get_heading())
+
+        wpi_pose = tag_pose.get_as_wpi_pose()
+        tag_xs.append(wpi_pose.get_x())
+        tag_ys.append(wpi_pose.get_y())
+        tag_zs.append(wpi_pose.get_z())
+        tag_rolls.append(wpi_pose.get_roll())
+        tag_pitches.append(wpi_pose.get_pitch())
+        tag_headings.append(wpi_pose.get_yaw())
         
         tags_and_poses.append((tag, tag_pose))
     
     tagIdsPub.set(tag_ids)
     tagXsPub.set(tag_xs)
     tagYsPub.set(tag_ys)
-    # tagZsPub.set(tag_zs)
+    tagZsPub.set(tag_zs)
+    tagRollsPub.set(tag_rolls)
+    tagPitchesPub.set(tag_pitches)
     tagHeadingsPub.set(tag_headings)
     
     tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
     primary_tag = tags_and_poses[0] if tags_and_poses else None
     if primary_tag:
+        wpi_pose = primary_tag[1].get_as_wpi_pose()
+
         primaryTagIdPub.set(primary_tag[0].id)
-        primaryTagXPub.set(primary_tag[1].get_z())
-        primaryTagYPub.set(primary_tag[1].get_x())
-        # primaryTagZPub.set(primary_tag[1].get_y())
-        primaryTagHeadingPub.set(primary_tag[1].get_heading())
+        primaryTagXPub.set(wpi_pose.get_x())
+        primaryTagYPub.set(wpi_pose.get_y())
+        primaryTagZPub.set(wpi_pose.get_z())
+        primaryTagRollPub.set(wpi_pose.get_roll())
+        primaryTagPitchPub.set(wpi_pose.get_pitch())
+        primaryTagHeadingPub.set(wpi_pose.get_yaw())
     else:
         primaryTagIdPub.set(-1)
         primaryTagXPub.set(-1)
         primaryTagYPub.set(-1)
-        # primaryTagZPub.set(-1)
+        primaryTagZPub.set(-1)
+        primaryTagRollPub.set(-1)
+        primaryTagPitchPub.set(-1)
         primaryTagHeadingPub.set(-1)
     
     fps = 1/(float(time.time() - start))

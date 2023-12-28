@@ -48,6 +48,14 @@ class Pose:
         """
         return np.array([self.x, self.y, self.z, *Rotation.as_euler(self.rotation, 'xyz')])
     
+    def get_as_wpi_pose(self) -> Pose:
+        """Gets the pose as a WPILib pose (z, x, y, yaw, roll, pitch)
+
+        Returns:
+            npt.NDArray[np.float32]: (6,) WPILib pose
+        """
+        return Pose(self.z, self.x, -self.y, *Rotation.as_euler(self.rotation, 'zxy'))
+    
     def get_heading(self) -> float:
         """Gets the heading of the pose
 
@@ -112,6 +120,30 @@ class Pose:
             float: z component of the pose translation in inches
         """
         return self.z*39.3701
+    
+    def get_roll(self) -> float:
+        """Gets the roll of the pose
+
+        Returns:
+            float: roll of the pose
+        """
+        return Rotation.as_euler(self.rotation, 'xyz')[0]
+
+    def get_pitch(self) -> float:
+        """Gets the pitch of the pose
+
+        Returns:
+            float: pitch of the pose
+        """
+        return Rotation.as_euler(self.rotation, 'xyz')[1]
+    
+    def get_yaw(self) -> float:
+        """Gets the yaw of the pose
+
+        Returns:
+            float: yaw of the pose
+        """
+        return Rotation.as_euler(self.rotation, 'xyz')[2]
     
     def get_translation(self) -> npt.NDArray[np.float32]:
         """Gets the translation of the pose
