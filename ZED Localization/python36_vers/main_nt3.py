@@ -67,25 +67,33 @@ detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters
 
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
+fps_lst = []
+pose_reset = False
 while True:
-    start = time.time()    
+    start = time.time()
     # Run the periodic function to update the image, depth, and pose data
     # Returns True if a new image is available, False otherwise
     if not detector.periodic():
         continue
     timestamp = detector.timestamp
     
-    pose = None
-    if primary == "zed_pose":
-        pose = detector.get_camera_pose_zed()
-    elif primary == "pnp_pose":
-        pose = detector.get_camera_pose_pnp()
-    elif primary == "depth_pose":
-        pose = detector.get_camera_pose_depth_average()
+    # pose = None
+    # match primary:
+    #     case "zed_pose":
+    #         pose = detector.get_camera_pose_zed()
+    #     case "pnp_pose":
+    #         pose = detector.get_camera_pose_pnp()
+    #     case "depth_pose":
+    #         pose = detector.get_camera_pose_depth_average()
+    pose = detector.get_camera_pose_pnp()
     
     if pose:
+        if not pose_reset:
+            pose_reset = True
+            detector.reset_camera_pose(pose)
+            
         # Tranform the pose from the camera frame to the robot frame
-        # pose = ZEDDetector.get_robot_pose(pose)
+        pose = ZEDDetector.get_robot_pose(pose)
         pass
     else:
         # If no pose is available, set the pose to a default value
@@ -93,60 +101,90 @@ while True:
 
     # For testing:
     print()
-    # print(f"Tag: {tag.id}")
+    for tag in detector.get_detected_tags():
+        print(f"Tag: {tag.id}")
     print(f"{pose} at {timestamp}ms")
     
-    pose_2d = pose.get_2d_pose().tolist()
-    #Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
-    pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
-    tags_table.putNumberArray("pose_estimate", pose_2d)
+    zedPose = ZEDDetector.get_robot_pose(detector.get_camera_pose_zed()).get_as_wpi_pose()
+    zedCovar = detector.get_zed_pose_covar()
+    zedCovar = np.diagonal(zedCovar) # WPILib pose estimators assume independent variables
+    # print(zedCovar)
+    tags_table.putNumberArray("zed_pose_estimate", zedPose.get_3d_pose().tolist() + zedCovar.tolist())
     
-    pose_3d = pose.get_3d_pose().tolist()
+    
+    # pose_2d = pose.get_2d_pose().tolist()
+    # #Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
+    # pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
+    # tags_table.putNumberArray("pose_estimate", pose_2d)
+    
+    pose_3d = pose.get_as_wpi_pose().get_3d_pose().tolist()
     # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (x, y, z, roll, pitch, yaw)
-    pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
+    # pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
     tags_table.putNumberArray("pose_estimate_3d", pose_3d)
     
     tags = detector.get_detected_tags()
     tags_and_poses = []
     tag_ids = []
-    tag_ys = []
     tag_xs = []
+    tag_ys = []
+    tag_zs = []
+    tag_rolls = []
+    tag_pitches = []
     tag_headings = []
     
-    #for tag in tags:
-    #    tag_pose = detector.get_tag_pose(tag)
-    #    if not tag_pose:
-    #        continue
-    #    
-    #    tag_ids.append(float(tag.id))
-    #    tag_xs.append(tag_pose.get_z())
-    #    tag_ys.append(tag_pose.get_x())
-    #    tag_headings.append(tag_pose.get_heading())
-    #    
-    #    tags_and_poses.append((tag, tag_pose))
+    for tag in tags:
+        tag_pose = detector.get_tag_pose(tag)
+        if not tag_pose:
+            continue
+        
+        tag_ids.append(float(tag.id))
+
+        wpi_pose = tag_pose.get_as_wpi_pose()
+        tag_xs.append(wpi_pose.get_x())
+        tag_ys.append(wpi_pose.get_y())
+        tag_zs.append(wpi_pose.get_z())
+        tag_rolls.append(wpi_pose.get_roll())
+        tag_pitches.append(wpi_pose.get_pitch())
+        tag_headings.append(wpi_pose.get_yaw())
+        
+        tags_and_poses.append((tag, tag_pose))
     
-    #tags_table.putNumberArray("tag_ids", tag_ids)
-    #tags_table.putNumberArray("tag_xs", tag_xs)
-    #tags_table.putNumberArray("tag_ys", tag_ys)
-    # tags_table.putNumberArray("tag_zs", tag_zs)
-   # tags_table.putNumberArray("tag_headings", tag_headings)
+    tags_table.putNumberArray("tag_ids", tag_ids)
+    tags_table.putNumberArray("tag_xs", tag_xs)
+    tags_table.putNumberArray("tag_ys", tag_ys)
+    tags_table.putNumberArray("tag_zs", tag_zs)
+    tags_table.putNumberArray("tag_rolls", tag_rolls)
+    tags_table.putNumberArray("tag_pitches", tag_pitches)
+    tags_table.putNumberArray("tag_headings", tag_headings)
    # 
-    #tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
-    #primary_tag = tags_and_poses[0] if tags_and_poses else None
-    #if primary_tag:
-    #    tags_table.putNumber("primary_tag_id", primary_tag[0].id)
-    #    tags_table.putNumber("primary_tag_x", primary_tag[1].get_z())
-    #    tags_table.putNumber("primary_tag_y", primary_tag[1].get_x())
-    #    # tags_table.putNumber("primary_tag_z", primary_tag[1].get_y())
-    #    tags_table.putNumber("primary_tag_heading", primary_tag[1].get_heading())
-    #else:
-    #    tags_table.putNumber("primary_tag_id", -1)
-    #    tags_table.putNumber("primary_tag_x", -1)
-    #    tags_table.putNumber("primary_tag_y", -1)
-    #    # tags_table.putNumber("primary_tag_z", -1)
-    #    tags_table.putNumber("primary_tag_heading", -1)
+    tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
+    primary_tag = tags_and_poses[0] if tags_and_poses else None
+    if primary_tag:
+        wpi_pose = primary_tag[1].get_as_wpi_pose()
+        tags_table.putNumber("primary_tag_id", primary_tag[0].id)
+        tags_table.putNumber("primary_tag_x", wpi_pose.get_x())
+        tags_table.putNumber("primary_tag_y", wpi_pose.get_y())
+        tags_table.putNumber("primary_tag_z", wpi_pose.get_z())
+        tags_table.putNumber("primary_tag_roll", wpi_pose.get_roll())
+        tags_table.putNumber("primary_tag_pitch", wpi_pose.get_pitch())
+        tags_table.putNumber("primary_tag_heading", wpi_pose.get_heading())
+    else:
+        tags_table.putNumber("primary_tag_id", -1)
+        tags_table.putNumber("primary_tag_x", -1)
+        tags_table.putNumber("primary_tag_y", -1)
+        tags_table.putNumber("primary_tag_z", -1)
+        tags_table.putNumber("primary_tag_roll", -1)
+        tags_table.putNumber("primary_tag_pitch", -1)
+        tags_table.putNumber("primary_tag_heading", -1)
     
-    print(f"FPS: {1/(float(time.time() - start))}")
+    fps = 1/(float(time.time() - start))
+    if len(fps_lst) < 100:
+        fps_lst.append(fps)
+    else:
+        fps_lst.pop(0)
+        fps_lst.append(fps)
+
+    print(f"FPS: {round(fps)}, avg: {sum(fps_lst)/len(fps_lst)}")
     ## image = detector.get_image()
     ## cv2.imshow("Image", image)
     
