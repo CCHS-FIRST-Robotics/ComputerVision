@@ -1,8 +1,4 @@
-import yaml
-
-
-with open("config.yaml", "r") as file:
-    cfg = yaml.safe_load(file)
-print(cfg)
-for k, v in cfg.items():
-    print(k, v)
+import math
+y = math.radians(75)
+x = math.tan(y/2) * 10
+print(x)

@@ -51,7 +51,7 @@ class Detector:
 
 
             # mark = {"center": centroid}
-            mark = {"id": id, "x": x, "y":y, "d":}
+            mark = {"id": id, "x": x, "y":y}
             markers.append(mark)
 
 
