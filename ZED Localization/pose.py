@@ -30,7 +30,7 @@ class Pose:
         Returns:
             str: string representation of the Pose object
         """
-        return f"Pose:  x: {round(self.get_x_inches(), 3)}  y: {round(self.get_y_inches(), 3)}  z: {round(self.get_z_inches(), 3)}  depth: {round(self.get_depth_inches(), 2)}  pitch: {round(self.get_heading_degrees(), 3)}"
+        return f"Pose:  x: {np.round(self.get_x_inches(), 3)}  y: {np.round(self.get_y_inches(), 3)}  z: {np.round(self.get_z_inches(), 3)}  depth: {np.round(self.get_depth_inches(), 2)}  pitch: {np.round(self.get_heading_degrees(), 3)}"
     
     def get_2d_pose(self) -> npt.NDArray[np.float32]:
         """Gets the 2d pose (x, z, pitch) of the pose
@@ -54,7 +54,7 @@ class Pose:
         Returns:
             npt.NDArray[np.float32]: (6,) WPILib pose
         """
-        return Pose(self.z, -self.x, -self.y, *Rotation.as_euler(self.rotation, 'zxy'))
+        return Pose(-self.z, self.x, self.y, *Rotation.as_euler(self.rotation, 'zxy'))
     
     def get_heading(self) -> float:
         """Gets the heading of the pose

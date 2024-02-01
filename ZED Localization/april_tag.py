@@ -11,8 +11,8 @@ class AprilTag:
     # Positions of each tag id in the world frame
     tag_poses = {
         0: Pose(0, 0, 0, 0, 0, 0),
-        1: Pose(1, 0, 0, 0, 0, 0),
-        2: Pose(2, 0, 0, 0, 0, 0),
+        1: Pose(2, 0, 0, 0, 0, 0),
+        2: Pose(1, 0, 0, 0, 0, 0),
         3: Pose(3, 0, 0, 0, 0, 0),
     }
     
@@ -77,6 +77,9 @@ class AprilTag:
             npt.NDArray[np.float32]: (3,) translation vector
         """
         return self.tag_poses[self.id].get_translation()
+
+    def get_world_transformation(self) -> npt.NDArray[np.float32]:
+        return self.tag_poses[self.id].get_transformation_matrix()
 
     def get_corner_translations(self) -> npt.NDArray[np.float32]:
         """Gets the translation of each corner of the AprilTag in the world frame

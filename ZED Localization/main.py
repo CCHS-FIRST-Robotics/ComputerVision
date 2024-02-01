@@ -15,8 +15,8 @@ import ntcore
 
 # Initialize networktables instance
 n_table = ntcore.NetworkTableInstance.getDefault()
-# n_table.setServerTEAM(3205) # Connects to RIO server (running on robot)
-n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
+n_table.setServerTeam(3205) # Connects to RIO server (running on robot)
+# n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
 n_table.startClient4("Jetson Orin Nano (NT4)") # Any name will work
 
 tags_table = n_table.getTable("tags")
@@ -66,8 +66,8 @@ detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters
 
 
 # Resize the window to match the camera resolution (VERY IMPORTANT FOR TESTING -- WONT SHOW FULL IMAGE OTHERWISE)
-cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
-cv2.resizeWindow("Image", *detector.image_size)
+#cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
+#cv2.resizeWindow("Image", *detector.image_size)
 print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 
 # Set primary method of pose estimation (what's sent over NT)
@@ -90,15 +90,17 @@ while True:
     #         pose = detector.get_camera_pose_pnp()
     #     case "depth_pose":
     #         pose = detector.get_camera_pose_depth_average()
-    pose = detector.get_camera_pose_pnp()
+    pose = detector.get_camera_pose_depth_average()
+    # pose = detector.get_camera_pose_pnp()
     
     if pose:
         if not pose_reset:
             pose_reset = True
             detector.reset_camera_pose(pose)
-            
+        print(f"testing, {pose}")         
         # Tranform the pose from the camera frame to the robot frame
-        pose = ZEDDetector.get_robot_pose(pose)
+        pose = ZEDDetector.get_robot_pose(pose).get_as_wpi_pose()
+        # pose = pose.get_as_wpi_pose()
         pass
     else:
         # If no pose is available, set the pose to a default value
@@ -122,7 +124,7 @@ while True:
     # pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
     # # tagPose2dPub.set(pose_2d)
     
-    pose_3d = pose.get_as_wpi_pose().get_3d_pose().tolist()
+    pose_3d = pose.get_3d_pose().tolist()
     # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (z, x, y, yaw, roll, pitch)
     # pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
     tagPose3dPub.set(pose_3d)
@@ -168,6 +170,7 @@ while True:
     tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
     primary_tag = tags_and_poses[0] if tags_and_poses else None
     if primary_tag:
+        print("writing pose to NT")
         wpi_pose = primary_tag[1].get_as_wpi_pose()
 
         primaryTagIdPub.set(primary_tag[0].id)
@@ -178,6 +181,7 @@ while True:
         primaryTagPitchPub.set(wpi_pose.get_pitch())
         primaryTagHeadingPub.set(wpi_pose.get_yaw())
     else:
+        print("No tag found")
         primaryTagIdPub.set(-1)
         primaryTagXPub.set(-1)
         primaryTagYPub.set(-1)
@@ -194,8 +198,8 @@ while True:
         fps_lst.append(fps)
 
     print(f"FPS: {round(fps)}, avg: {sum(fps_lst)/len(fps_lst)}")
-    image = detector.get_image()
-    cv2.imshow("Image", image)
+    #image = detector.get_image()
+    #cv2.imshow("Image", image)
     
     key = cv2.waitKey(1)
     if key == ord('q'):

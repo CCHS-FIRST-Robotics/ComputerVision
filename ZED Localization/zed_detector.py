@@ -5,7 +5,7 @@ import cv2
 from cv2 import aruco # NOTE: This is the opencv-contrib-python package, not the opencv-python package
 import cv2.typing as cvt
 
-# from dt_apriltags import Detector
+from dt_apriltags import Detector
 
 import numpy as np
 import numpy.typing as npt
@@ -22,7 +22,7 @@ from april_tag import AprilTag
 class ZEDDetector:
     
     # Transformation matrix from the camera frame to the robot frame
-    camera_to_robot_transformation = Pose(0.0, 0.0, -0.3, 0.0, 0.0, 0.0).get_transformation_matrix()
+    camera_to_robot_transformation = Pose(0.20, 0.0, 0.35, 0.0, 0.0, 0.0).get_transformation_matrix()
     
     def __init__(self, zed, init_params, runtime_params, tracking_params, tag_size: float, initial_pose: Pose) -> None:
         """Initializes the ZED camera and AprilTag detector
@@ -86,16 +86,16 @@ class ZEDDetector:
         # self.parameters.
 
         # Initialize the apriltag detctor/parameters
-        # self.at_detector = Detector(
-        #     families='tag36h11',
-        #     nthreads=6,
-        #     quad_decimate=1.5,
-        #     quad_sigma=0.8,
-        #     refine_edges=1,
-        #     decode_sharpening=.25,
-        #     debug=0,
-        #     searchpath=['apriltags']
-        # )
+        self.at_detector = Detector(
+            families='tag36h11',
+            nthreads=6,
+            quad_decimate=1.5,
+            quad_sigma=0.8,
+            refine_edges=1,
+            decode_sharpening=.25,
+            debug=0,
+            searchpath=['apriltags']
+        )
         
         # Initialize the variables updated in the periodic function
         self.annotated_image = np.array([])
@@ -125,8 +125,8 @@ class ZEDDetector:
         image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2GRAY)
         image_debug = self.image_zed.get_data()
         
-        # self.detected_tags = self.detect_tags_apriltag(image, image_debug, draw_tags=True)
-        self.detected_tags = self.detect_tags_aruco(image, image_debug, draw_tags=True)
+        self.detected_tags = self.detect_tags_apriltag(image, image_debug, draw_tags=False)
+        # self.detected_tags = self.detect_tags_aruco(image, image_debug, draw_tags=True)
         
         
         return True
@@ -149,24 +149,24 @@ class ZEDDetector:
         self.annotated_image = image_debug
         return detected_tags
     
-    # def detect_tags_apriltag(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
-    #     detected_tags = []
-    #     tags = self.at_detector.detect(image, estimate_tag_pose=False, camera_params=None, tag_size=None)
-    #     for tag in tags:
+    def detect_tags_apriltag(self, image, image_debug, draw_tags=True) -> List[AprilTag]:
+        detected_tags = []
+        tags = self.at_detector.detect(image, estimate_tag_pose=False, camera_params=None, tag_size=None)
+        for tag in tags:
             
-    #         # reformat the corners 
-    #         corners = tag.corners
-    #         corners = [corners[3], corners[2], corners[1], corners[0]]
-    #         # print(corners)
+            # reformat the corners 
+            corners = tag.corners
+            corners = [corners[3], corners[2], corners[1], corners[0]]
+            # print(corners)
             
-    #         tag = AprilTag(tag.tag_id, self.tag_size, str(tag.tag_family), corners) # type: ignore #NOTE figure out how to fix this later
-    #         detected_tags.append(tag)
+            tag = AprilTag(tag.tag_id, self.tag_size, str(tag.tag_family), corners) # type: ignore #NOTE figure out how to fix this later
+            detected_tags.append(tag)
 
-    #         if draw_tags:
-    #             tag.draw_tag(image_debug, color=(0, 0, 255))
+            if draw_tags:
+                tag.draw_tag(image_debug, color=(0, 0, 255))
 
-    #     self.annotated_image = image_debug
-    #     return detected_tags
+        self.annotated_image = image_debug
+        return detected_tags
     
     def get_detected_tags(self) -> List[AprilTag]:
         """Gets the list of detected AprilTags
@@ -315,9 +315,27 @@ class ZEDDetector:
         Returns:
             Pose | None: Estimated camera pose in the world frame; None if the solvePnP function fails
         """
-        object_points = np.array([tag.get_corner_translations() for tag in self.detected_tags])
-        image_points = np.array([tag.corners for tag in self.detected_tags])
+        if not self.detected_tags:
+            return None
+
+        #object_points = np.array([tag.get_corner_translations() for tag in self.detected_tags])
+        #image_points = np.array([tag.corners for tag in self.detected_tags])
         
+        #  TODO: figure out how to fix the typing for this
+        object_points = []
+        image_points = []
+        for tag in self.detected_tags:
+            # print(tag.corners)
+            # print(tag.get_corner_translations())
+
+            for item in tag.get_corner_translations():
+                object_points.append(item)
+            for item in tag.corners:
+                image_points.append(item)
+        object_points = np.array(object_points) # type: ignore
+        image_points = np.array(image_points) # type: ignore
+
+
         retval, rvec, tvec = cv2.solvePnP(
             object_points,
             image_points,
@@ -327,19 +345,33 @@ class ZEDDetector:
         )
         
         r = Rotation.from_rotvec(rvec.T[0])
-        r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True))
-        pitch = r.as_euler('xyz', degrees=False)[1]
+        #r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True))
+        #pitch = r.as_euler('xyz', degrees=False)[1]
         
         # Rotate the camera displacement vector <x, z> by "pitch" (in terms of the robot it's yaw) degrees, leave y fixed
         # Then, negate the x since the camera left is world right to get translation from tag to camera in world frame
         # Then, add the pose from the tag to the camera pose
-        rotation = Rotation.from_euler('xyz', [0, -pitch, 0], degrees=False).as_matrix()
-        world_translations = [
-            rotation.dot(self.get_displacement(tag.center)) * np.array([-1, 1, 1]) + tag.get_world_translation() 
-            for tag in self.detected_tags 
-            if not np.isnan(self.get_displacement(tag.center)[0]) # ZED point cloud can return nan values
-        ]
+        # rotation = Rotation.from_euler('xyz', [0, -pitch, 0], degrees=False).as_matrix()
         
+        # world_translations = [
+        #     rotation.dot(self.get_displacement(tag.center)) * np.array([-1, 1, 1]) + tag.get_world_translation() 
+        #     for tag in self.detected_tags 
+        #     if not np.isnan(self.get_displacement(tag.center)[0]) # ZED point cloud can return nan values
+        # ]
+        
+        # world_translations = [
+        #    r.as_matrix().dot(self.get_displacement(tag.center))*np.array([1, 1, -1]) + tag.get_world_translation()
+        #    for tag in self.detected_tags
+        #    if not np.isnan(self.get_displacement(tag.center)[0]) # ZED point cloud can return nan values
+        # ]
+
+        world_translations = []
+        for tag in self.detected_tags:
+            if np.isnan(self.get_displacement(tag.center)[0]):
+                continue
+            origin_to_tag = tag.get_world_transformation()
+            tag_to_camera = Pose(*(r.as_matrix().dot(self.get_displacement(tag.center))*np.array([-1, 1, 1])), *r.as_euler('xyz', degrees=False)).get_transformation_matrix()
+            world_translations.append(Pose.from_transformation_matrix(origin_to_tag.dot(tag_to_camera)).get_translation())
         # Take the average of all the translations found from the ZED point cloud and use that for the estimated camera pose translation 
         if world_translations:
             tvec = np.mean(world_translations, axis=0)
@@ -390,7 +422,7 @@ class ZEDDetector:
             Pose: Robot pose in the world frame
         """
         return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
-    
+        # return Pose.from_transformation_matrix(ZEDDetector.camera_to_robot_transformation.dot(camera_pose.get_transformation_matrix()))
     
 if __name__ == '__main__2':
     poseT1 = Pose(0, 0, 0, 0, 0, 0).get_transformation_matrix()
