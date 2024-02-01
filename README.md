@@ -11,6 +11,8 @@ Project inlcudes
 
 ## April Tags
 Aruco Marker Detection
+Crescendo 2024 field marker IDs 
+![2024 field marker IDs](docs/2024_field_marker_IDs.png)
 
 ## Yolo
 You Only Look Once
