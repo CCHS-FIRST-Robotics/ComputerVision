@@ -27,3 +27,6 @@ You Only Look Once
 - [Python environment setup](docs/pyenv_setup.md)
 - [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
 - [Adding your work](docs/adding_your_work.md)
+
+## Field Drawings
+[2024 Field Drawings CAD pdf](docs/2024FieldDrawings.pdf)
