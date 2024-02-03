@@ -1,5 +1,5 @@
 import cv2
-from cv2 import aruco
+# from cv2 import aruco
 import numpy as np
 import yaml
 import pickle
@@ -97,12 +97,13 @@ class Detector:
         self.hcoef = self.cfg["marker_size"] / self.tan_half_fovv_half_width
 
         if cfg["marker_family"] == "16h5":
-            self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
+            self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_16H5)
         elif cfg["marker_family"] == "36h11":
-            self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_36H11)
+            self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36H11)
         else:
             raise Exception("Unknown Family!")
-        self.parameters = aruco.DetectorParameters()
+        self.parameters = cv2.aruco.DetectorParameters()
+        self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.parameters) 
         self.mtx = mtx
         self.dist = dist
 
@@ -110,9 +111,8 @@ class Detector:
         cfg = self.cfg
         img = cv2.undistort(img, self.mtx, self.dist)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        corners, ids, _ = aruco.detectMarkers(
-            gray, self.aruco_dict, None, parameters=self.parameters
-        )
+        corners, ids, _ = self.detector.detectMarkers(gray)
+        
 
         if ids is None:
             return None, None
@@ -197,52 +197,52 @@ if __name__ == "__main__":
 
     while cap.isOpened():
         ret, img = cap.read()
-        ret, places = det.detect(img)
+        # ret, places = det.detect(img)
 
         if not ret:
             continue
         ####
-        markers, rvecs, tvecs = ret
-        print(f"{rvecs=}, {tvecs=}")
-        det_pnp = pnp_detect(mtx, dist)
-        det_pnp.detect(places)
+        # markers, rvecs, tvecs = ret
+        # print(f"{rvecs=}, {tvecs=}")
+        # det_pnp = pnp_detect(mtx, dist)
+        # det_pnp.detect(places)
 
-        for marker in markers:
-            cv2.putText(
-                img,
-                f"d={marker['dis']:.2f}",
-                (0, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 0, 255),
-                2,
-                cv2.LINE_AA,
-            )
-            cv2.putText(
-                img,
-                f"h={np.degrees(marker['hang']):.2f}",
-                (0, 60),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 0, 255),
-                2,
-                cv2.LINE_AA,
-            )
-            cv2.putText(
-                img,
-                f"v={np.degrees(marker['vang']):.2f}",
-                (0, 90),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 0, 255),
-                2,
-                cv2.LINE_AA,
-            )
+        # for marker in markers:
+        #     cv2.putText(
+        #         img,
+        #         f"d={marker['dis']:.2f}",
+        #         (0, 30),
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         1,
+        #         (0, 0, 255),
+        #         2,
+        #         cv2.LINE_AA,
+        #     )
+        #     cv2.putText(
+        #         img,
+        #         f"h={np.degrees(marker['hang']):.2f}",
+        #         (0, 60),
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         1,
+        #         (0, 0, 255),
+        #         2,
+        #         cv2.LINE_AA,
+        #     )
+        #     cv2.putText(
+        #         img,
+        #         f"v={np.degrees(marker['vang']):.2f}",
+        #         (0, 90),
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         1,
+        #         (0, 0, 255),
+        #         2,
+        #         cv2.LINE_AA,
+        #     )
             # print(f'Id: {marker["id"]} found at {marker["dis"]:.2f} metres away')
         # plt.savefig("_data/markers.pdf")
         # plt.show()
 
-        cv2.imshow("markers", cv2.undistort(img, mtx, dist))
+        cv2.imshow("markers", img)
 
         if cv2.waitKey(1) == ord("q"):
             break
