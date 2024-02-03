@@ -15,7 +15,7 @@ Crescendo 2024 field marker IDs
 ![2024 field marker IDs](docs/2024_field_marker_IDs.png)
 
 ## Yolo
-You Only Look Once
+[You Only Look Once](https://github.com/ultralytics/ultralytics/blob/main/docs/en/quickstart.md)
 
 ## Video Streaming
 [Video streaming code](videostreaming/README.md)
