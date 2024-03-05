@@ -50,7 +50,7 @@ zed = sl.Camera()
 init_params = sl.InitParameters()
 init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
 init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-init_params.camera_resolution = sl.RESOLUTION.HD720
+init_params.camera_resolution = sl.RESOLUTION.HD1080
 init_params.depth_minimum_distance = .3
 
 # Create and set RuntimeParameters after opening the camera
@@ -90,8 +90,8 @@ while True:
     #         pose = detector.get_camera_pose_pnp()
     #     case "depth_pose":
     #         pose = detector.get_camera_pose_depth_average()
-    pose = detector.get_camera_pose_depth_average()
-    # pose = detector.get_camera_pose_pnp()
+    # pose = detector.get_camera_pose_depth_average()
+    pose = detector.get_camera_pose_pnp()
     
     if pose:
         if not pose_reset:

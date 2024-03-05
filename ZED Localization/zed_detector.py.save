@@ -56,7 +56,25 @@ class ZEDDetector:
         self.point_cloud = sl.Mat()
         self.zed_pose = sl.Pose()
         
-        self.update_camera_parameters()
+        # Get camera information (image size, camera intrinsics)
+        self.resolution = self.zed.get_camera_information().camera_configuration.resolution
+        self.image_size = [self.resolution.width, self.resolution.height]
+        
+        self.calibration_params = zed.get_camera_information().camera_configuration.calibration_parameters
+        self.fovh = self.calibration_params.left_cam.h_fov
+        self.fovv = self.calibration_params.left_cam.v_fov
+        
+        self.fx = self.calibration_params.left_cam.fx
+        self.fy = self.calibration_params.left_cam.fy
+        self.cx = self.calibration_params.left_cam.cx
+        self.cy = self.calibration_params.left_cam.cy
+        
+        self.left_camera_matrix = np.array([
+            [self.fx, 0, self.cx], 
+            [0, self.fy, self.cy], 
+            [0,       0,       1]
+        ])
+        self.left_distortion = np.array(self.calibration_params.left_cam.disto)
         
         # Initialize the aruco dictionary and parameters
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_36H11)
@@ -87,30 +105,6 @@ class ZEDDetector:
         # Set the initial pose of the camera
         self.intial_pose = initial_pose
     
-    def update_camera_parameters(self) -> None:
-        # Get camera information (image size, camera intrinsics)
-        self.resolution = self.zed.get_camera_information().camera_configuration.resolution
-        self.image_size = [self.resolution.width, self.resolution.height]
-        
-        self.calibration_params = self.zed.get_camera_information().camera_configuration.calibration_parameters
-        self.fovh = self.calibration_params.left_cam.h_fov
-        self.fovv = self.calibration_params.left_cam.v_fov
-        
-        self.fx = self.calibration_params.left_cam.fx
-        self.fy = self.calibration_params.left_cam.fy
-        self.cx = self.calibration_params.left_cam.cx
-        self.cy = self.calibration_params.left_cam.cy
-        
-        self.left_camera_matrix = np.array([
-            [self.fx, 0, self.cx], 
-            [0, self.fy, self.cy], 
-            [0,       0,       1]
-        ])
-        self.left_distortion = np.array(self.calibration_params.left_cam.disto)
-        print("camera parameters")
-        print(self.left_distortion)
-        print(self.fx, self.fy, self.cx, self.cy)
-
     def periodic(self) -> bool:
         """Update the depth, image, and pose data from the ZED, and update the detected tags list
 
@@ -240,6 +234,7 @@ class ZEDDetector:
             self.left_distortion,
             flags=cv2.SOLVEPNP_IPPE_SQUARE
         )
+	
         
         displacement = self.get_displacement(tag.center)
         if not np.isnan(displacement[0]):
@@ -284,21 +279,17 @@ class ZEDDetector:
         # Find the camera pose using PnP
         # retval is a boolean indicating whether the function succeeded
         # rvec is a (3,) rotation vector, where the direction defines the plane of rotation and the magnitude defines the angle of rotation in radians
-        # tvec is a (3,) displacement vector
-        print(object_points)
+        # tvec is a (3,) displacement vector 
         retval, rvec, tvec = cv2.solvePnP(
             object_points,
             image_points,
             self.left_camera_matrix,
-            None,
-            # self.left_distortion,
+            self.left_distortion,
             flags=cv2.SOLVEPNP_SQPNP
         )
-        # print(self.left_distortion)
+
         # r_mat, jacobian = cv2.Rodrigues(rvec)
-        print("----------------")
-        print(tvec)
-        print("----------------")
+        
         # transform from rotation vector to euler angles (rvec is a (3, 1) matrix, refSormat to (3,) matrix)
         r = Rotation.from_rotvec(rvec.T[0])
         # r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True)) # for some reason the natural orientation of the tag is upside down (aka opencv is stupid and now we dont need this cuz I fixed it elsewhere)
