@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO # type: ignore
 
-model = YOLO("yolo-Weights/yolov8n.pt")
+model = YOLO("sample_code/yolo/note_detection_weights.pt")
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 fontScale = 1
