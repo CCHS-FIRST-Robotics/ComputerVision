@@ -17,7 +17,7 @@ class ZEDDetector:
     
     # Transformation matrix from the camera frame to the robot frame
     # camera_to_robot_transformation = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0).get_transformation_matrix()
-    model = YOLO("sample_code/yolo/note_detection_weights.pt")
+    model = YOLO("object detection\\note_detection_weights.pt")
     
     def __init__(self, zed, init_params, runtime_params, tracking_params, initial_pose: Pose) -> None:
         """Initializes the ZED camera
@@ -98,8 +98,7 @@ class ZEDDetector:
         # self.timestamp = self.zed_pose.timestamp
         self.timestamp = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE).get_milliseconds()
         
-        image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGR2RGB)
-        # image = self.image_zed.get_data()
+        image = cv2.cvtColor(self.image_zed.get_data(), cv2.COLOR_BGRA2BGR)
         image_debug = self.image_zed.get_data()
         self.annotated_image = image_debug
         
@@ -109,9 +108,12 @@ class ZEDDetector:
         for r in results:
             for b in r.boxes:
                 cls = int(b.cls[0])
-                conf = int(b.conf[0])
-                if cls == 0 and conf > 80:
+                conf = float(b.conf[0])
+                print(conf)
+                if cls == 0 and conf > 0.8:
                     self.notes.append(b)
+                    
+        print(len(self.notes))
         return True
     
     def get_image(self) -> cvt.MatLike:
@@ -216,10 +218,10 @@ if __name__ == '__main__':
     init_params = sl.InitParameters()
     init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
     init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-    init_params.camera_resolution = sl.RESOLUTION.HD720
+    init_params.camera_resolution = sl.RESOLUTION.HD720 # yolo code only works with 720
     init_params.depth_minimum_distance = .3
     
-    # Create and set RuntimeParameters after opening the camera
+    # Create set RuntimeParameters after opening the camera
     runtime_parameters = sl.RuntimeParameters()
     # runtime_parameters.sensing_mode = sl.SENSING_MODE.STANDARD  # Use STANDARD sensing mode (I think this is deprecated now??)
     
