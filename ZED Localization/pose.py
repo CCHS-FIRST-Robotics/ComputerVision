@@ -54,7 +54,7 @@ class Pose:
         Returns:
             npt.NDArray[np.float32]: (6,) WPILib pose
         """
-        return Pose(-self.z, self.x, self.y, *Rotation.as_euler(self.rotation, 'zxy'))
+        return Pose(self.z, self.x, self.y, *Rotation.as_euler(self.rotation, 'zxy'))
     
     def get_heading(self) -> float:
         """Gets the heading of the pose
@@ -191,6 +191,7 @@ class Pose:
         Returns:
             npt.NDArray[np.float32]: (4, 4) transformation matrix
         """
+        # print("rotation", Rotation.as_euler(self.rotation, 'xyz'))
         return np.block([[self.rotation.as_matrix(), self.get_translation().reshape(3, 1)], [0, 0, 0, 1]])
     
     @staticmethod

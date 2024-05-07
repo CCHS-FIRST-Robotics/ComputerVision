@@ -50,7 +50,7 @@ zed = sl.Camera()
 init_params = sl.InitParameters()
 init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
 init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-init_params.camera_resolution = sl.RESOLUTION.HD1080
+init_params.camera_resolution = sl.RESOLUTION.HD2K
 init_params.depth_minimum_distance = .3
 
 # Create and set RuntimeParameters after opening the camera
@@ -62,7 +62,7 @@ runtime_parameters.confidence_threshold = 90
 
 tracking_parameters = sl.PositionalTrackingParameters()
 
-detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters, 0.1524, Pose(0, 0, 0, 0, 0, 0))
+detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters, 0.1651, Pose(0, 0, 0, 0, 0, 0))
 
 
 # Resize the window to match the camera resolution (VERY IMPORTANT FOR TESTING -- WONT SHOW FULL IMAGE OTHERWISE)
@@ -171,6 +171,7 @@ while True:
     primary_tag = tags_and_poses[0] if tags_and_poses else None
     if primary_tag:
         print("writing pose to NT")
+        print("ATAG DEPTH", np.sqrt(wpi_pose.get_x()**2 + wpi_pose.get_y()**2))
         wpi_pose = primary_tag[1].get_as_wpi_pose()
 
         primaryTagIdPub.set(primary_tag[0].id)

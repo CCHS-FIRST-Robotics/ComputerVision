@@ -22,8 +22,8 @@ from april_tag import AprilTag
 class ZEDDetector:
     
     # Transformation matrix from the camera frame to the robot frame
-    camera_to_robot_transformation = Pose(0.0, 0.0, -0.6, -0.44, 0.0, 0).get_transformation_matrix()
-    print(camera_to_robot_transformation)
+    camera_to_robot_transformation = Pose(0.0, 0.0, 0.3, 0.0, 0.0, 0.0).get_transformation_matrix()
+    
     def __init__(self, zed, init_params, runtime_params, tracking_params, tag_size: float, initial_pose: Pose) -> None:
         """Initializes the ZED camera and AprilTag detector
 
@@ -249,9 +249,8 @@ class ZEDDetector:
         
         if not retval:
             return None
-        return Pose(*tvec, *rotation)
-        # return self.get_robot_pose(Pose(*tvec, *rotation))
-        # return self.tag_to_robot_pose(Pose(*tvec, *rotation))
+        #
+return self.get_robot_pose(Pose(*tvec, *rotation))
     
     def get_camera_pose_pnp(self) -> Pose | None:
         """Estimates the camera pose using SQPnP (https://www.ecva.net///papers/eccv_2020/papers_ECCV/papers/123460460.pdf)
@@ -298,9 +297,9 @@ class ZEDDetector:
         )
         # print(self.left_distortion)
         # r_mat, jacobian = cv2.Rodrigues(rvec)
-        # print("----------------")
-        # print(tvec)
-        # print("----------------")
+        print("----------------")
+        print(tvec)
+        print("----------------")
         # transform from rotation vector to euler angles (rvec is a (3, 1) matrix, refSormat to (3,) matrix)
         r = Rotation.from_rotvec(rvec.T[0])
         # r = r * (Rotation.from_euler('xyz', [180, 0, 180], degrees=True)) # for some reason the natural orientation of the tag is upside down (aka opencv is stupid and now we dont need this cuz I fixed it elsewhere)
@@ -309,16 +308,11 @@ class ZEDDetector:
         # print(retval)
         # print(r.as_euler('xyz', degrees=True))
         # print(tvec)
-        np_rodrigues = np.asarray(rvec[:,:],np.float64)
-        rot_mtx = cv2.Rodrigues(np_rodrigues)[0]
-        tvec = -np.matrix(rot_mtx) * np.matrix(tvec)
-
+        
         if not retval:
             return None
-        print("---")
-        print(*np.array(tvec.T)[0])
-        print("---")
-        return Pose(*np.array(tvec.T)[0], *r.as_euler('xyz', degrees=False))
+        # print(*tvec.T[0])
+        return Pose(*tvec.T[0], *r.as_euler('xyz', degrees=False))
     
     def get_camera_pose_depth_average(self) -> Pose | None:
         """Estimates the camera pose using a mix of SQPnP and the ZED point cloud. 
@@ -438,23 +432,8 @@ class ZEDDetector:
         Returns:
             Pose: Robot pose in the world frame
         """
-        # print("--------------------")
-        # print(camera_pose)
-        # print(camera_pose.get_transformation_matrix())
-        # print("-----------")
-        # return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
+        return Pose.from_transformation_matrix(camera_pose.get_transformation_matrix().dot(ZEDDetector.camera_to_robot_transformation))
         # return Pose.from_transformation_matrix(ZEDDetector.camera_to_robot_transformation.dot(camera_pose.get_transformation_matrix()))
-        mtx = Rotation.from_euler('xyz', [28, 0, 0], degrees=True).as_matrix()
-        disp = mtx.dot(camera_pose.get_translation())
-        return Pose(disp[0], disp[1], disp[2] + .3, camera_pose.get_roll() + .46, camera_pose.get_pitch(), camera_pose.get_yaw())
-
-    def tag_to_robot_pose(self, tag_pose):
-        mtx = Rotation.from_euler('xyz', [-28, 0, 0], degrees=True).as_matrix()
-        print(mtx)
-        # 25 degree pitch, .3m back
-        disp = mtx.dot(tag_pose.get_translation())
-        return Pose(disp[0], disp[1], disp[2] - .3, tag_pose.get_roll() + .46, tag_pose.get_pitch(), tag_pose.get_yaw())
-
     
 if __name__ == '__main__2':
     poseT1 = Pose(0, 0, 0, 0, 0, 0).get_transformation_matrix()

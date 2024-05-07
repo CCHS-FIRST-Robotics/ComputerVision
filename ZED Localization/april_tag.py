@@ -10,10 +10,22 @@ class AprilTag:
      
     # Positions of each tag id in the world frame
     tag_poses = {
-        0: Pose(0, 0, 0, 0, 0, 0),
-        1: Pose(2, 0, 0, 0, 0, 0),
-        2: Pose(1, 0, 0, 0, 0, 0),
-        3: Pose(3, 0, 0, 0, 0, 0),
+        #1: Pose(0.2459,  1.3559, 15.0794, 0, 120 * np.pi/180, 0),
+        #2: Pose(0.8837,  1.3559, 16.1851, 0, 120 * np.pi/180, 0),
+        3: Pose(4.9827,  1.4511, 16.5793, 0, 180 * np.pi/180, 0),
+        4: Pose(5.5479,  1.4511, 16.5793, 0, 180 * np.pi/180, 0),
+        #5: Pose(8.2042,  1.3559, 14.7008, 0, 270 * np.pi/180, 0),
+        #6: Pose(8.2042,  1.3559,  1.8415, 0, 270 * np.pi/180, 0),
+        7: Pose(5.5478,  1.4511, -0.0380, 0,               0, 0),
+        8: Pose(4.9827,  1.4511, -0.0380, 0,               0, 0),
+        #9: Pose(0.8836,  1.3559,  0.3561, 0,  60 * np.pi/180, 0),
+        #10: Pose(0.2459, 1.3559,  1.4612, 0,  60 * np.pi/180, 0),
+        #11: Pose(3.7132, 1.3208, 11.9047, 0, 300 * np.pi/180, 0),
+        #12: Pose(4.4983, 1.3208, 11.9047, 0,  60 * np.pi/180, 0),
+        13: Pose(4.1051, 1.3208, 11.2202, 0, 180 * np.pi/180, 0),
+        14: Pose(4.1051, 1.3208,  5.3208, 0,               0, 0),
+        #15: Pose(4.4983, 1.3208,  4.6413, 0, 120 * np.pi/180, 0),
+        #16: Pose(3.7132, 1.3208,  4.4613, 0, 240 * np.pi/180, 0)
     }
     
     def __init__(self, tag_id: int, tag_size: float, tag_family: str, tag_corners: npt.NDArray) -> None:
@@ -69,16 +81,20 @@ class AprilTag:
         #cv2.putText(image, f"({round(center[0])}, {round(center[1])})", (center[0] - 10, center[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2, cv2.LINE_AA)
 
         return image
-    
+
     def get_world_translation(self) -> npt.NDArray[np.float32]:
         """Gets the translation of the AprilTag in the world frame
 
         Returns:
             npt.NDArray[np.float32]: (3,) translation vector
         """
+        if self.id not in self.tag_poses.keys():
+            return np.array([-1, -1, -1])
         return self.tag_poses[self.id].get_translation()
 
     def get_world_transformation(self) -> npt.NDArray[np.float32]:
+        if self.id not in self.tag_poses.keys():
+            return np.array([-1, -1, -1])
         return self.tag_poses[self.id].get_transformation_matrix()
 
     def get_corner_translations(self) -> npt.NDArray[np.float32]:
