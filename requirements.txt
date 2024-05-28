@@ -5,5 +5,4 @@ opencv-contrib-python
 pyopengl
 scipy
 pyntcore
-
 ultralytics

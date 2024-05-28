@@ -13,7 +13,6 @@ The video streaming service will start at boot time
 ## Gstreamer windows install 
 https://gstreamer.freedesktop.org/documentation/installing/on-windows.html?gi-language=c 
 
-
 ## Configure streaming parameters
 Set target ip, width, height, etc.
 Make sure to edit TARGETIP
@@ -51,5 +50,3 @@ Stop service
 
 Check status
 `systemctl status stream`
-
-
