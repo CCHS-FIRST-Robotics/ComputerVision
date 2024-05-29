@@ -5,12 +5,12 @@ import cv2
 from cv2 import aruco # NOTE: This is the opencv-contrib-python package, not the opencv-python package
 import cv2.typing as cvt
 
-from dt_apriltags import Detector
+from dt_apriltags import Detector # more accurate
 
 import numpy as np
 import numpy.typing as npt
 from scipy.spatial.transform import Rotation #type: ignore
-
+x
 import sys
 import math
 from typing import List, Tuple, Union
