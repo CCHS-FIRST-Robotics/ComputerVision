@@ -7,51 +7,53 @@ from pose import Pose
 # Global Imports
 import numpy as np
 import numpy.typing as npt
-from scipy.spatial.transform import Rotation #type: ignore
-import cv2 
-import pyzed.sl as sl # type: ignore
+from scipy.spatial.transform import Rotation  # type: ignore
+import cv2
+import pyzed.sl as sl  # type: ignore
 import ntcore
 
 
 # Initialize networktables instance
 n_table = ntcore.NetworkTableInstance.getDefault()
-n_table.setServerTeam(3205) # Connects to RIO server (running on robot)
+n_table.setServerTeam(3205)  # Connects to RIO server (running on robot)
 # n_table.setServer("10.0.0.81") # LAPTOP IPv4 ADDRESS (running on laptop/simulating robot code)
-n_table.startClient4("Jetson Orin Nano (NT4)") # Any name will work
+n_table.startClient4("Jetson Orin Nano (NT4)")  # Any name will work
 
 tags_table = n_table.getTable("tags")
 
 # tagPose2dPub = tags_table.getDoubleArrayTopic("pose_estimate").publish();
-tagPose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish();
+tagPose3dPub = tags_table.getDoubleArrayTopic("pose_estimate_3d").publish()
 
-zedPosePub = tags_table.getDoubleArrayTopic("zed_pose_estimate").publish();
+zedPosePub = tags_table.getDoubleArrayTopic("zed_pose_estimate").publish()
 # zedCovarPub = tags_table.getDoubleArrayTopic("zed_pose_covar").publish();
 
-primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish();
-primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish();
-primaryTagYPub = tags_table.getDoubleTopic("primary_tag_y").publish();
-primaryTagZPub = tags_table.getDoubleTopic("primary_tag_z").publish();
-primaryTagRollPub = tags_table.getDoubleTopic("primary_tag_roll").publish();
-primaryTagPitchPub = tags_table.getDoubleTopic("primary_tag_pitch").publish();
-primaryTagHeadingPub = tags_table.getDoubleTopic("primary_tag_heading").publish();
+primaryTagIdPub = tags_table.getDoubleTopic("primary_tag_id").publish()
+primaryTagXPub = tags_table.getDoubleTopic("primary_tag_x").publish()
+primaryTagYPub = tags_table.getDoubleTopic("primary_tag_y").publish()
+primaryTagZPub = tags_table.getDoubleTopic("primary_tag_z").publish()
+primaryTagRollPub = tags_table.getDoubleTopic("primary_tag_roll").publish()
+primaryTagPitchPub = tags_table.getDoubleTopic("primary_tag_pitch").publish()
+primaryTagHeadingPub = tags_table.getDoubleTopic("primary_tag_heading").publish()
 
-tagIdsPub = tags_table.getDoubleArrayTopic("tag_ids").publish();
-tagXsPub = tags_table.getDoubleArrayTopic("tag_xs").publish();
-tagYsPub = tags_table.getDoubleArrayTopic("tag_ys").publish();
-tagZsPub = tags_table.getDoubleArrayTopic("tag_zs").publish();
-tagRollsPub = tags_table.getDoubleArrayTopic("tag_rolls").publish();
-tagPitchesPub = tags_table.getDoubleArrayTopic("tag_pitches").publish();
-tagHeadingsPub = tags_table.getDoubleArrayTopic("tag_headings").publish();
+tagIdsPub = tags_table.getDoubleArrayTopic("tag_ids").publish()
+tagXsPub = tags_table.getDoubleArrayTopic("tag_xs").publish()
+tagYsPub = tags_table.getDoubleArrayTopic("tag_ys").publish()
+tagZsPub = tags_table.getDoubleArrayTopic("tag_zs").publish()
+tagRollsPub = tags_table.getDoubleArrayTopic("tag_rolls").publish()
+tagPitchesPub = tags_table.getDoubleArrayTopic("tag_pitches").publish()
+tagHeadingsPub = tags_table.getDoubleArrayTopic("tag_headings").publish()
 
 # Create a ZED camera
 zed = sl.Camera()
 
 # Create configuration parameters
 init_params = sl.InitParameters()
-init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE # Set the depth mode to performance (fastest)
+init_params.depth_mode = (
+    sl.DEPTH_MODE.PERFORMANCE
+)  # Set the depth mode to performance (fastest)
 init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
 init_params.camera_resolution = sl.RESOLUTION.HD2K
-init_params.depth_minimum_distance = .3
+init_params.depth_minimum_distance = 0.3
 
 # Create and set RuntimeParameters after opening the camera
 runtime_parameters = sl.RuntimeParameters()
@@ -62,13 +64,20 @@ runtime_parameters.confidence_threshold = 90
 
 tracking_parameters = sl.PositionalTrackingParameters()
 
-detector = ZEDDetector(zed, init_params, runtime_parameters, tracking_parameters, 0.1651, Pose(0, 0, 0, 0, 0, 0))
+detector = ZEDDetector(
+    zed,
+    init_params,
+    runtime_parameters,
+    tracking_parameters,
+    0.1651,
+    Pose(0, 0, 0, 0, 0, 0),
+)
 
 
 # Resize the window to match the camera resolution (VERY IMPORTANT FOR TESTING -- WONT SHOW FULL IMAGE OTHERWISE)
-#cv2.namedWindow("Image", cv2.WINDOW_NORMAL) 
-#cv2.resizeWindow("Image", *detector.image_size)
-print(*detector.image_size) # NOTE THIS IS ONLY LEFT CAM (only one used atm)
+# cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+# cv2.resizeWindow("Image", *detector.image_size)
+print(*detector.image_size)  # NOTE THIS IS ONLY LEFT CAM (only one used atm)
 
 # Set primary method of pose estimation (what's sent over NT)
 primary = "pnp_pose"
@@ -81,7 +90,7 @@ while True:
     if not detector.periodic():
         continue
     timestamp = detector.timestamp
-    
+
     # pose = None
     # match primary:
     #     case "zed_pose":
@@ -92,12 +101,12 @@ while True:
     #         pose = detector.get_camera_pose_depth_average()
     # pose = detector.get_camera_pose_depth_average()
     pose = detector.get_camera_pose_pnp()
-    
+
     if pose:
         if not pose_reset:
             pose_reset = True
             detector.reset_camera_pose(pose)
-        print(f"testing, {pose}")         
+        print(f"testing, {pose}")
         # Tranform the pose from the camera frame to the robot frame
         pose = ZEDDetector.get_robot_pose(pose).get_as_wpi_pose()
         # pose = pose.get_as_wpi_pose()
@@ -111,24 +120,27 @@ while True:
     for tag in detector.get_detected_tags():
         print(f"Tag: {tag.id}")
     print(f"{pose} at {timestamp}ms")
-    
-    zedPose = ZEDDetector.get_robot_pose(detector.get_camera_pose_zed()).get_as_wpi_pose()
+
+    zedPose = ZEDDetector.get_robot_pose(
+        detector.get_camera_pose_zed()
+    ).get_as_wpi_pose()
     zedCovar = detector.get_zed_pose_covar()
-    zedCovar = np.diagonal(zedCovar) # WPILib pose estimators assume independent variables
+    zedCovar = np.diagonal(
+        zedCovar
+    )  # WPILib pose estimators assume independent variables
     # print(zedCovar)
     zedPosePub.set(zedPose.get_3d_pose().tolist() + zedCovar.tolist())
-    
-    
+
     # pose_2d = pose.get_2d_pose().tolist()
     # # Convert from ZED (x, z, pitch) to WPILib (x, y, yaw)
     # pose_2d = [pose_2d[1], pose_2d[0], pose_2d[2]]
     # # tagPose2dPub.set(pose_2d)
-    
+
     pose_3d = pose.get_3d_pose().tolist()
     # Convert from ZED (x, y, z, roll, pitch, yaw) to WPILib (z, x, y, yaw, roll, pitch)
     # pose_3d = [pose_3d[2], pose_3d[0], pose_3d[1], pose_3d[5], pose_3d[3], pose_3d[4]]
     tagPose3dPub.set(pose_3d)
-    
+
     tags = detector.get_detected_tags()
     tags_and_poses = []
     tag_ids = []
@@ -138,12 +150,12 @@ while True:
     tag_rolls = []
     tag_pitches = []
     tag_headings = []
-    
+
     for tag in tags:
         tag_pose = detector.get_tag_pose(tag)
         if not tag_pose:
             continue
-        
+
         tag_ids.append(float(tag.id))
 
         wpi_pose = tag_pose.get_as_wpi_pose()
@@ -153,9 +165,9 @@ while True:
         tag_rolls.append(wpi_pose.get_roll())
         tag_pitches.append(wpi_pose.get_pitch())
         tag_headings.append(wpi_pose.get_yaw())
-        
+
         tags_and_poses.append((tag, tag_pose))
-    
+
     if len(tag_ids) != len(tag_xs):
         print(len(tag_ids), len(tag_xs))
         print("BAD THING")
@@ -166,12 +178,12 @@ while True:
     tagRollsPub.set(tag_rolls)
     tagPitchesPub.set(tag_pitches)
     tagHeadingsPub.set(tag_headings)
-    
+
     tags_and_poses.sort(key=lambda tag: tag[1].get_depth())
     primary_tag = tags_and_poses[0] if tags_and_poses else None
     if primary_tag:
         print("writing pose to NT")
-        print("ATAG DEPTH", np.sqrt(wpi_pose.get_x()**2 + wpi_pose.get_y()**2))
+        print("ATAG DEPTH", np.sqrt(wpi_pose.get_x() ** 2 + wpi_pose.get_y() ** 2))
         wpi_pose = primary_tag[1].get_as_wpi_pose()
 
         primaryTagIdPub.set(primary_tag[0].id)
@@ -190,8 +202,8 @@ while True:
         primaryTagRollPub.set(-1)
         primaryTagPitchPub.set(-1)
         primaryTagHeadingPub.set(-1)
-    
-    fps = 1/(float(time.time() - start))
+
+    fps = 1 / (float(time.time() - start))
     if len(fps_lst) < 100:
         fps_lst.append(fps)
     else:
@@ -199,10 +211,9 @@ while True:
         fps_lst.append(fps)
 
     print(f"FPS: {round(fps)}, avg: {sum(fps_lst)/len(fps_lst)}")
-    #image = detector.get_image()
-    #cv2.imshow("Image", image)
-    
+    # image = detector.get_image()
+    # cv2.imshow("Image", image)
+
     key = cv2.waitKey(1)
-    if key == ord('q'):
+    if key == ord("q"):
         break
-    

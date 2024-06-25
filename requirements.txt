@@ -6,3 +6,4 @@ pyopengl
 scipy
 pyntcore
 ultralytics
+ntcore
