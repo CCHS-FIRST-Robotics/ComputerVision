@@ -1,9 +1,0 @@
-cython
-numpy
-opencv-python
-opencv-contrib-python
-pyopengl
-scipy
-pyntcore
-ultralytics
-ntcore

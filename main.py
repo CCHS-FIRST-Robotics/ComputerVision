@@ -1,8 +1,8 @@
 # Local Imports
 import time
 from zed_detector import ZEDDetector
-from april_tag import AprilTag
-from pose import Pose
+from classes.april_tag import AprilTag
+from classes.pose import Pose
 
 # Global Imports
 import numpy as np

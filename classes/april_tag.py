@@ -4,7 +4,7 @@ import cv2.typing as cvt
 import numpy.typing as npt
 import numpy as np
 
-from pose import Pose
+from classes.pose import Pose
 
 
 class AprilTag:
