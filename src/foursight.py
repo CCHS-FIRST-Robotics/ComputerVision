@@ -6,7 +6,8 @@ import numpy as np
 import yaml
 
 from arducam_utils import ArducamUtils
-from marker import detect
+from marker import marker_detect
+from objdet import object_detect
 from utils import fourcc, get_dim
 
 
@@ -80,13 +81,16 @@ if __name__ == "__main__":
     quit = Value("i", 0)
 
     proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
-    proc_marker = Process(target=detect, args=(cfg, shm, sem, 1, quit))
+    proc_marker = Process(target=marker_detect, args=(cfg, shm, sem, 1, quit))
+    proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, 2, quit))
 
     proc_cap.start()
     proc_marker.start()
+    proc_objdet.start()
 
     proc_cap.join()
     proc_marker.join()
+    proc_objdet.join()
 
     shm.close()
     shm.unlink()
