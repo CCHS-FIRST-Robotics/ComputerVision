@@ -1,5 +1,3 @@
-from multiprocessing import Semaphore, Value, shared_memory
-
 import cv2
 
 from utils import get_dim, get_shm_frame
@@ -14,12 +12,6 @@ def object_detect(cfg, shm, sem, procid, quit):
 
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
-
-        #        sem.acquire()
-        #        shm_array = np.ndarray(shape=(th, tw, cam["c"]), dtype=np.uint8, buffer=shm.buf)
-        #        frame = np.copy(shm_array)
-        #        sem.release()
-
         cv2.imshow("obj det " + str(procid), frame)
 
         if quit.value:
