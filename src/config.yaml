@@ -1,0 +1,15 @@
+
+camera:
+    id: 0
+    fovh: 75
+    w: 5120
+    h: 800
+    c: 3
+    pformat: BA81
+
+
+marker:
+   family: 36h11
+   size: 0.18
+   ids: [1,2,3,4,5,6,7,8]
+
