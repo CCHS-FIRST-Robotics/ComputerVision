@@ -6,7 +6,8 @@ import numpy as np
 import yaml
 
 from arducam_utils import ArducamUtils
-from utils import fourcc, resize
+from marker import detect
+from utils import fourcc, get_dim
 
 
 def capture(cam, shm, sem, procid, quit):
@@ -35,13 +36,15 @@ def capture(cam, shm, sem, procid, quit):
 
     prev_tm = time.time()
 
+    tw, th = get_dim(w, h, cam["wr"])
+
     while cap.isOpened():
         ret, frame = cap.read()
         sem.acquire()
 
         frame = frame.reshape(h, w)
         frame = arducam_utils.convert(frame)
-        frame = resize(frame, 2560.0)
+        frame = cv2.resize(frame, (tw, th))
 
         shm_array = np.ndarray(shape=frame.shape, dtype=np.uint8, buffer=shm.buf)
         np.copyto(shm_array, frame)
@@ -67,24 +70,23 @@ if __name__ == "__main__":
     with open("config.yaml", "r") as file:
         cfg = yaml.safe_load(file)
 
-    print(cfg)
-
     cam = cfg["camera"]
 
-    shm_sz = cam["w"] * cam["h"] * cam["c"]  # 3 channel BGR
-
-    print(cfg)
-    print(shm_sz)
-    shm = shm_sz
+    tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
+    shm_sz = tw * th * cam["c"]  # 3 channel BGR
 
     shm = shared_memory.SharedMemory(create=True, size=shm_sz)
     sem = Semaphore(1)
     quit = Value("i", 0)
 
-    # capture(cam, shm, sem, 0, quit)
     proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
+    proc_marker = Process(target=detect, args=(cfg, shm, sem, 1, quit))
+
     proc_cap.start()
+    proc_marker.start()
+
     proc_cap.join()
+    proc_marker.join()
 
     shm.close()
     shm.unlink()

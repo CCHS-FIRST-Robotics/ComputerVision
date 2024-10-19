@@ -9,9 +9,6 @@ def fourcc(fcc):
     return n
 
 
-def resize(frame, dst_width):
-    h = frame.shape[0]
-    w = frame.shape[1]
-
+def get_dim(w, h, dst_width):
     scale = dst_width * 1.0 / w
-    return cv2.resize(frame, (int(scale * w), int(scale * h)))
+    return int(scale * w), int(scale * h)

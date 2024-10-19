@@ -6,7 +6,7 @@ camera:
     h: 800
     c: 3
     pformat: BA81
-
+    wr: 2560
 
 marker:
    family: 36h11
