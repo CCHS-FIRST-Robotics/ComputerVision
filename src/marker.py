@@ -1,11 +1,19 @@
 import cv2
 import numpy as np
+import time
 
 from utils import get_dim, get_shm_frame
 
 
 def marker_detect(cfg, shm, sem, procid, quit):
 
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    org = (20, 30)
+    fontScale = 1
+    color = (255, 0, 0)
+    thickness = 2
+    win_name = "marker det " + str(procid)
+    
     cam = cfg["camera"]
     mark = cfg["marker"]
 
@@ -21,6 +29,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
     detectorparams = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, detectorparams)
 
+    p_tm = time.time()
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
 
@@ -37,7 +46,14 @@ def marker_detect(cfg, shm, sem, procid, quit):
 
                 cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
 
-        cv2.imshow("marker det " + str(procid), frame)
+        now = time.time()
+        fps = f"M FPS {1/(now-p_tm):.1f}"
+        p_tm = now
+
+        frame = cv2.putText(frame, fps, org, font, fontScale, color, thickness, cv2.LINE_AA)
+
+        cv2.imshow(win_name, frame)
+ 
 
         if quit.value:
             break

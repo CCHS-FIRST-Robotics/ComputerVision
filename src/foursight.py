@@ -13,6 +13,13 @@ from utils import fourcc, get_dim
 
 def capture(cam, shm, sem, procid, quit):
 
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    org = (20, 30)
+    fontScale = 1
+    color = (0, 255, 255)
+    thickness = 1
+    win_name = "main " + str(procid)
+
     pixelformat = fourcc(cam["pformat"])
 
     cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
@@ -35,8 +42,7 @@ def capture(cam, shm, sem, procid, quit):
     # set exposure time
     cap.set(cv2.CAP_PROP_EXPOSURE, -4)
 
-    prev_tm = time.time()
-
+    p_tm = time.time()
     tw, th = get_dim(w, h, cam["wr"])
 
     while cap.isOpened():
@@ -51,10 +57,16 @@ def capture(cam, shm, sem, procid, quit):
         np.copyto(shm_array, frame)
         sem.release()
 
-        cv2.imshow("video", frame)
+
         now = time.time()
-        print(f"FPS {1/(now-prev_tm):.1f}")
-        prev_tm = now
+        fps = f"FPS {1/(now-p_tm):.1f}"
+        p_tm = now
+
+        frame = cv2.putText(frame, fps, org, font, fontScale, color, thickness, cv2.LINE_AA)
+        cv2.imshow(win_name, frame)
+        # now = time.time()
+        # print(f"FPS {1/(now-prev_tm):.1f}")
+        # prev_tm = now
 
         if quit.value:
             break
