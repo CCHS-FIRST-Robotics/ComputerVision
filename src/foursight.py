@@ -2,13 +2,14 @@ import time
 from multiprocessing import Process, Semaphore, Value, shared_memory
 
 import cv2
+import numpy as np
 import yaml
 
 from arducam_utils import ArducamUtils
 from utils import fourcc, resize
 
 
-def capture(shm, sem, cam, quit):
+def capture(cam, shm, sem, procid, quit):
 
     pixelformat = fourcc(cam["pformat"])
 
@@ -36,17 +37,25 @@ def capture(shm, sem, cam, quit):
 
     while cap.isOpened():
         ret, frame = cap.read()
+        sem.acquire()
+
         frame = frame.reshape(h, w)
         frame = arducam_utils.convert(frame)
-
         frame = resize(frame, 2560.0)
+
+        shm_array = np.ndarray(shape=frame.shape, dtype=np.uint8, buffer=shm.buf)
+        np.copyto(shm_array, frame)
+        sem.release()
 
         cv2.imshow("video", frame)
         now = time.time()
         print(f"FPS {1/(now-prev_tm):.1f}")
         prev_tm = now
 
+        if quit.value:
+            break
         if cv2.waitKey(1) == 27:
+            quit.value = 1
             break
 
     cap.release()
@@ -66,5 +75,16 @@ if __name__ == "__main__":
 
     print(cfg)
     print(shm_sz)
+    shm = shm_sz
 
-    capture("SHM", "sem", cam, "quit")
+    shm = shared_memory.SharedMemory(create=True, size=shm_sz)
+    sem = Semaphore(1)
+    quit = Value("i", 0)
+
+    # capture(cam, shm, sem, 0, quit)
+    proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
+    proc_cap.start()
+    proc_cap.join()
+
+    shm.close()
+    shm.unlink()
