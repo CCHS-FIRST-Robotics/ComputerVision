@@ -12,14 +12,7 @@ from utils import fourcc, get_dim
 
 
 def capture(cam, shm, sem, procid, quit):
-
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    org = (20, 30)
-    fontScale = 1
-    color = (0, 255, 255)
-    thickness = 1
-    win_name = "main " + str(procid)
-
+    win_name = f"main {procid}"
     pixelformat = fourcc(cam["pformat"])
 
     cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
@@ -57,12 +50,20 @@ def capture(cam, shm, sem, procid, quit):
         np.copyto(shm_array, frame)
         sem.release()
 
-
         now = time.time()
         fps = f"FPS {1/(now-p_tm):.1f}"
         p_tm = now
 
-        frame = cv2.putText(frame, fps, org, font, fontScale, color, thickness, cv2.LINE_AA)
+        frame = cv2.putText(
+            frame,
+            fps,
+            cfg["FPS"]["org"],
+            cv2.FONT_HERSHEY_SIMPLEX,
+            cfg["FPS"]["fontscale"],
+            cfg["FPS"]["color"],
+            cfg["FPS"]["thickness"],
+            cv2.LINE_AA,
+        )
         cv2.imshow(win_name, frame)
         # now = time.time()
         # print(f"FPS {1/(now-prev_tm):.1f}")

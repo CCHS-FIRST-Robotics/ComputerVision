@@ -19,8 +19,8 @@ display:
     objdet: True
 
 FPS:
-    org: [20, 30]
-    fontscale: 1
+    org: [5, 20]
+    fontscale: 0.5
     color: [0,255,255]
     thickness: 1
 
