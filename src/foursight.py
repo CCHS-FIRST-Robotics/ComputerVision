@@ -1,3 +1,4 @@
+import signal
 import time
 from multiprocessing import Process, Semaphore, Value, shared_memory
 
@@ -9,6 +10,14 @@ from arducam_utils import ArducamUtils
 from marker import marker_detect
 from objdet import object_detect
 from utils import fourcc, get_dim
+
+quit = Value("i", 0)
+
+
+def signal_handler(sig, frame):
+    print("Ctrl+C!", sig, frame)
+    quit.value = 1
+    # sys.exit(0)
 
 
 def capture(cam, shm, sem, procid, quit):
@@ -50,29 +59,28 @@ def capture(cam, shm, sem, procid, quit):
         np.copyto(shm_array, frame)
         sem.release()
 
-        now = time.time()
-        fps = f"FPS {1/(now-p_tm):.1f}"
-        p_tm = now
+        if cfg["display"]["main"]:
+            now = time.time()
+            fps = f"FPS {1/(now-p_tm):.1f}"
+            p_tm = now
 
-        frame = cv2.putText(
-            frame,
-            fps,
-            cfg["FPS"]["org"],
-            cv2.FONT_HERSHEY_SIMPLEX,
-            cfg["FPS"]["fontscale"],
-            cfg["FPS"]["color"],
-            cfg["FPS"]["thickness"],
-            cv2.LINE_AA,
-        )
-        cv2.imshow(win_name, frame)
-        # now = time.time()
-        # print(f"FPS {1/(now-prev_tm):.1f}")
-        # prev_tm = now
+            frame = cv2.putText(
+                frame,
+                fps,
+                cfg["FPS"]["org"],
+                cv2.FONT_HERSHEY_SIMPLEX,
+                cfg["FPS"]["fontscale"],
+                cfg["FPS"]["color"],
+                cfg["FPS"]["thickness"],
+                cv2.LINE_AA,
+            )
+            cv2.imshow(win_name, frame)
+
+            if cv2.waitKey(1) == 27:
+                quit.value = 1
+                break
 
         if quit.value:
-            break
-        if cv2.waitKey(1) == 27:
-            quit.value = 1
             break
 
     cap.release()
@@ -80,6 +88,8 @@ def capture(cam, shm, sem, procid, quit):
 
 
 if __name__ == "__main__":
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     with open("config.yaml", "r") as file:
         cfg = yaml.safe_load(file)
@@ -91,7 +101,6 @@ if __name__ == "__main__":
 
     shm = shared_memory.SharedMemory(create=True, size=shm_sz)
     sem = Semaphore(1)
-    quit = Value("i", 0)
 
     proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
     proc_marker = Process(target=marker_detect, args=(cfg, shm, sem, 1, quit))

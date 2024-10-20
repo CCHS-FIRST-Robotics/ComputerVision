@@ -9,7 +9,6 @@ from utils import get_dim, get_shm_frame
 def marker_detect(cfg, shm, sem, procid, quit):
 
     win_name = f"marker det {procid}"
-
     cam = cfg["camera"]
     mark = cfg["marker"]
 
@@ -40,27 +39,30 @@ def marker_detect(cfg, shm, sem, procid, quit):
                 cy = int(c[:, 1].sum() / 4)
                 # markers.append({"id":id, "c":(cx, cy)})
 
-                cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
+                if cfg["display"]["marker"]:
+                    cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
 
-        now = time.time()
-        fps = f"M FPS {1/(now-p_tm):.1f}"
-        p_tm = now
+        if cfg["display"]["marker"]:
+            now = time.time()
+            fps = f"M FPS {1/(now-p_tm):.1f}"
+            p_tm = now
 
-        frame = cv2.putText(
-            frame,
-            fps,
-            cfg["FPS"]["org"],
-            cv2.FONT_HERSHEY_SIMPLEX,
-            cfg["FPS"]["fontscale"],
-            cfg["FPS"]["color"],
-            cfg["FPS"]["thickness"],
-            cv2.LINE_AA,
-        )
+            frame = cv2.putText(
+                frame,
+                fps,
+                cfg["FPS"]["org"],
+                cv2.FONT_HERSHEY_SIMPLEX,
+                cfg["FPS"]["fontscale"],
+                cfg["FPS"]["color"],
+                cfg["FPS"]["thickness"],
+                cv2.LINE_AA,
+            )
 
-        cv2.imshow(win_name, frame)
+            cv2.imshow(win_name, frame)
+
+            if cv2.waitKey(1) == 27:
+                quit.value = 1
+                break
 
         if quit.value:
-            break
-        if cv2.waitKey(1) == 27:
-            quit.value = 1
             break
