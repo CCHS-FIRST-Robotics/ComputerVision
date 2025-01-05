@@ -9,13 +9,13 @@ camera:
     wr: 2560 # resized target width
 
 marker:
-    cameraids: [0,1,2,3] # do marker det only on camera in list
+    cameraids: [0,1,2,3] # do marker det only on camera [0-3]
     family: 36h11
     size: 0.18 # marker side in meters
     ids: [1,2,3,4,5,6,7,8] # ids to keep
 
 objdet:
-    cameraids: [0,1,2,3] # do object det only on camera in list
+    cameraids: [0,1,2,3] # do object det only on camera [0-3]
 
 tasks: # what tasks to run
     marker: True
