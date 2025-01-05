@@ -103,16 +103,23 @@ if __name__ == "__main__":
     sem = Semaphore(1)
 
     proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
-    proc_marker = Process(target=marker_detect, args=(cfg, shm, sem, 1, quit))
-    proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, 2, quit))
-
     proc_cap.start()
-    proc_marker.start()
-    proc_objdet.start()
+
+    if cfg["tasks"]["marker"]:
+        proc_marker = Process(target=marker_detect, args=(cfg, shm, sem, 1, quit))
+        proc_marker.start()
+
+    if cfg["tasks"]["objdet"]:
+        proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, 2, quit))
+        proc_objdet.start()
 
     proc_cap.join()
-    proc_marker.join()
-    proc_objdet.join()
+
+    if cfg["tasks"]["marker"]:
+        proc_marker.join()
+
+    if cfg["tasks"]["objdet"]:
+        proc_objdet.join()
 
     shm.close()
     shm.unlink()
