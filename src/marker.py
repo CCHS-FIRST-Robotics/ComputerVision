@@ -44,7 +44,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
 
         if cfg["display"]["marker"]:
             now = time.time()
-            fps = f"M FPS {1/(now-p_tm):.1f}"
+            fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
             frame = cv2.putText(
