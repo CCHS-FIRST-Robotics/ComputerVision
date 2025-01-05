@@ -1,24 +1,27 @@
 
 camera:
-    id: 0
-    fovh: 75
-    w: 5120
-    h: 800
-    c: 3
+    id: 0 #/dev/video0
+    fovh: 75 # fov horizontal 
+    w: 5120 # capture pixel width
+    h: 800 # capture height
+    c: 3 # BGR
     pformat: BA81
-    wr: 2560
+    wr: 2560 # resized target width
 
 marker:
-   family: 36h11
-   size: 0.18
-   ids: [1,2,3,4,5,6,7,8]
+    family: 36h11
+    size: 0.18 # marker side in meters
+    ids: [1,2,3,4,5,6,7,8] # ids to keep
 
-display:
+objdet:
+    cameraids: [0,1,2,3] # do object det only on camera in list
+
+display: # process to display images
     main: False
     marker: True
     objdet: True
 
-FPS:
+FPS: # FPS display settings
     org: [5, 20]
     fontscale: 0.5
     color: [0,255,255]
