@@ -24,31 +24,45 @@ def marker_detect(cfg, shm, sem, procid, quit):
     detectorparams = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, detectorparams)
 
+    # the 4 cameras are combined into a wide image 400x2560
+    imw = cfg["camera"]["wr"] // 4  # one camera width
+
     p_tm = time.time()
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
+        frames = {}
+        markers = {}
 
-        corners, markerids, rejects = detector.detectMarkers(frame)
-        # markers = []
-        cv2.aruco.drawDetectedMarkers(frame, corners, markerids)
+        # Do imarker detection only cameras specified in cfg
+        for i in cfg["marker"]["cameraids"]:
+            framei = frame[:, i * imw : (i + 1) * imw, :]
+            corners, markerids, rejects = detector.detectMarkers(framei)
+            markers[i] = []
 
-        if markerids is not None:
-            for c, id in zip(corners, markerids):
-                c = c.squeeze()
-                cx = int(c[:, 0].sum() / 4)
-                cy = int(c[:, 1].sum() / 4)
-                # markers.append({"id":id, "c":(cx, cy)})
+            # Calculate and draw center point
+            if markerids is not None:
+                for c, id in zip(corners, markerids):
+                    c = c.squeeze()
+                    cx = int(c[:, 0].sum() / 4)
+                    cy = int(c[:, 1].sum() / 4)
+                    markers[i].append((id, cx, cy))
 
                 if cfg["display"]["marker"]:
-                    cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
+                    cv2.circle(framei, (cx, cy), 4, (0, 0, 255), -1)
+
+            if cfg["display"]["marker"]:
+                cv2.aruco.drawDetectedMarkers(framei, corners, markerids)
+                frames[i] = framei
 
         if cfg["display"]["marker"]:
+            iframe = np.hstack(list(frames.values()))
+
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
             frame = cv2.putText(
-                frame,
+                iframe,
                 fps,
                 cfg["FPS"]["org"],
                 cv2.FONT_HERSHEY_SIMPLEX,
