@@ -1,3 +1,5 @@
+package frc.robot.commands;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +13,7 @@ public class Localization {
 
 
     //RADIANS! 🚨 0rad IS UP!!! 🚨
-    public static double[] localize(double angle, double angleOffset, double distance, int aprilTagID){
+    public static Pose2d localize(double angle, double angleOffset, double distance, int aprilTagID){
         // angle is the angle from the camera to the tag
         // angleOffset is the robot's angle (0 if the robot is facing positive y. 
         //      If everything breaks, this variable is probably why since I didn't test it
@@ -23,14 +25,14 @@ public class Localization {
 
         // Java uses -pi to pi
         double finalAngle = angle + angleOffset;
-        System.out.println(finalAngle);
+      
 
         // Values before adding coordinates
         double[] relatives = {Math.sin(finalAngle) * distance, Math.cos(finalAngle) * distance};
 
         double[] output = {data.get(0) - relatives[0], data.get(1) - relatives[1]};
         Pose2d pose = new Pose2d(output[0], output[1], new Rotation2d(angleOffset));
-        return output;
+        return pose;
     }
 
     public static void main(String[] args) {
@@ -61,7 +63,7 @@ public class Localization {
 
         // Play around with the localize parameters to test numbers
 
-        double[] coords = localize(0, 0, 30, 1);
-        System.out.println(coords[0] + ", " + coords[1] + "\n");
+        Pose2d coords = localize(91, 34, 5, 1);
+        System.out.println(coords);
     }
 }
