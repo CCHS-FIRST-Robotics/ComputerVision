@@ -5,6 +5,7 @@ robot:
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera:
     id: 0 #/dev/video0
+    type: arducam
     fovh: 75 # fov horizontal
     fovv: 51.2
     yaw: [0,90,180,-90] # camera orientatiom for each camera
