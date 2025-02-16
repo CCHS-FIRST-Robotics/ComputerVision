@@ -9,6 +9,7 @@ import yaml
 from arducam_utils import ArducamUtils
 from marker import marker_detect
 from objdet import object_detect
+from stream import stream
 from utils import fourcc, get_dim
 
 quit = Value("i", 0)
@@ -113,6 +114,10 @@ if __name__ == "__main__":
         proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, 2, quit))
         proc_objdet.start()
 
+    if cfg["tasks"]["stream"]:
+        proc_stream = Process(target=stream, args=(cfg, shm, sem, 2, quit))
+        proc_stream.start()
+
     proc_cap.join()
 
     if cfg["tasks"]["marker"]:
@@ -120,6 +125,9 @@ if __name__ == "__main__":
 
     if cfg["tasks"]["objdet"]:
         proc_objdet.join()
+
+    if cfg["tasks"]["stream"]:
+        proc_stream.join()
 
     shm.close()
     shm.unlink()
