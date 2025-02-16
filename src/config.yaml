@@ -17,9 +17,15 @@ marker:
 objdet:
     cameraids: [0,1,2,3] # do object det only on camera [0-3]
 
+stream:
+    camid: 0 # default camera
+    ip: 192.168.1.50
+    port: 5000
+
 tasks: # what tasks to run
     marker: True
     objdet: True
+    stream: True
 
 display: # process to display images
     main: False
