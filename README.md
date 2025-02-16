@@ -1,22 +1,34 @@
-# 2024 CCHS Computer Vision
+# CCHS Computer Vision
 
-Project inlcudes 
-- April tag detections using opencv aruco library
-- yolo object detection
-- video streaming
+Project is using jetson orin nano single board computer and arducam quad rolling shutter cameras.  
+
+Processes running in parallel using shared memory IPC. This enables running processes running independently and at different frame rates with low latency image capture and processing.
+
+Task currently supported
+- April tag detections
+- Yolo object detection
+- Video streaming
 
 ## Installation
 ### Setup
 ```pip install -r requirements.txt```
 
+## Projects
+### Run
+```sh run.sh```
+
+### Image capture
+```sh capture.sh```
+
+### Camera calibration
+```sh calibrate.sh``` 
+
 ## April Tags
 Aruco Marker Detection
-Crescendo 2024 field marker IDs 
-![2024 field marker IDs](docs/2024_field_marker_IDs.png)
 
 ## Yolo
 [You Only Look Once Quickstart](https://github.com/ultralytics/ultralytics/blob/main/docs/en/quickstart.md)  
-[Yolov8 Getting Started](https://docs.ultralytics.com/modes/#introduction)  
+[Yolov Getting Started](https://docs.ultralytics.com/modes/#introduction)  
 - [train](https://docs.ultralytics.com/modes/train/)
 - [val](https://docs.ultralytics.com/modes/val/)
 - [predict](https://docs.ultralytics.com/modes/predict/)
@@ -33,5 +45,3 @@ Crescendo 2024 field marker IDs
 - [Documenting Python Code: A Complete Guide](https://realpython.com/documenting-python-code/)
 - [Adding your work](docs/adding_your_work.md)
 
-## Field Drawings
-[2024 Field Drawings CAD pdf](docs/2024FieldDrawings.pdf)
