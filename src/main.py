@@ -1,3 +1,5 @@
+import argparse
+import os
 import signal
 import time
 from multiprocessing import Process, Semaphore, Value, shared_memory
@@ -36,9 +38,10 @@ def capture(cam, shm, sem, procid, quit):
     h = int(h)
     w = int(w)
 
-    arducam_utils = ArducamUtils(cam["id"])
-    cap.set(cv2.CAP_PROP_CONVERT_RGB, arducam_utils.convert2rgb)
-    arducam_utils.write_dev(ArducamUtils.CHANNEL_SWITCH_REG, -1)
+    if cam["type"] == "arducam":
+        arducam_utils = ArducamUtils(cam["id"])
+        cap.set(cv2.CAP_PROP_CONVERT_RGB, arducam_utils.convert2rgb)
+        arducam_utils.write_dev(ArducamUtils.CHANNEL_SWITCH_REG, -1)
 
     # Turn off auto exposure
     # cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
@@ -53,7 +56,10 @@ def capture(cam, shm, sem, procid, quit):
         sem.acquire()
 
         frame = frame.reshape(h, w)
-        frame = arducam_utils.convert(frame)
+
+        if cam["type"] == "arducam":
+            frame = arducam_utils.convert(frame)
+
         frame = cv2.resize(frame, (tw, th))
 
         shm_array = np.ndarray(shape=frame.shape, dtype=np.uint8, buffer=shm.buf)
@@ -90,12 +96,29 @@ def capture(cam, shm, sem, procid, quit):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Launcher")
+    parser.add_argument(
+        "-c", "--config", type=str, default="config.yaml", help="config file"
+    )
+    args = parser.parse_args()
+
     signal.signal(signal.SIGINT, signal_handler)
 
-    with open("config.yaml", "r") as file:
+    # Load config file
+    with open(args.config, "r") as file:
         cfg = yaml.safe_load(file)
 
     cam = cfg["camera"]
+
+    # Load camera calibration
+    if os.path.exists(cam["calibration"]):
+        with np.load(cam["calibration"]) as cal:
+            cam["mtx"], cam["dist"], _, _ = [
+                cal[i] for i in ("mtx", "dist", "rvecs", "tvecs")
+            ]
+    else:
+        cam["mtx"] = None
+        cam["dist"] = None
 
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
     shm_sz = tw * th * cam["c"]  # 3 channel BGR
