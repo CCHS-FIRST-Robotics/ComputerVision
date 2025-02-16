@@ -33,8 +33,8 @@ stream:
 
 tasks: # what tasks to run
     marker: True
-    objdet: True
-    stream: True
+    objdet: False
+    stream: False
 
 display: # process to display images
     main: False

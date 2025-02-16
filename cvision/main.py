@@ -8,11 +8,11 @@ import cv2
 import numpy as np
 import yaml
 
-from arducam_utils import ArducamUtils
-from marker import marker_detect
-from objdet import object_detect
-from stream import stream
-from utils import fourcc, get_dim
+from .arducam_utils import ArducamUtils
+from .marker import marker_detect
+from .objdet import object_detect
+from .stream import stream
+from .utils import fourcc, get_dim
 
 quit = Value("i", 0)
 

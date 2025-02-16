@@ -4,7 +4,7 @@ import time
 import cv2
 import numpy as np
 
-from utils import get_dim, get_shm_frame
+from .utils import get_dim, get_shm_frame
 
 
 def stream(cfg, shm, sem, procid, quit):
