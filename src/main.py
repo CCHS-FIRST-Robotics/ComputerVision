@@ -1,3 +1,4 @@
+import argparse
 import os
 import signal
 import time
@@ -94,10 +95,16 @@ def capture(cam, shm, sem, procid, quit):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Launcher")
+    parser.add_argument(
+        "-c", "--config", type=str, default="config.yaml", help="config file"
+    )
+    args = parser.parse_args()
+
     signal.signal(signal.SIGINT, signal_handler)
 
     # Load config file
-    with open("config.yaml", "r") as file:
+    with open(args.config, "r") as file:
         cfg = yaml.safe_load(file)
 
     cam = cfg["camera"]
