@@ -1,1 +1,2 @@
-python -m cvision.main
+#!/bin/sh
+python -m ccvision.main

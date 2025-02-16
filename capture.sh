@@ -1,1 +1,2 @@
-python -m cvision.capture
+#!/bin/sh
+python -m ccvision.capture
