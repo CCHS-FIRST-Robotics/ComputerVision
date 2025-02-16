@@ -1,18 +1,26 @@
+robot:
+    ip: 10.32.5.2
 
+# OV9782 global shutter camera x 4
+# https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera:
     id: 0 #/dev/video0
-    fovh: 75 # fov horizontal 
+    fovh: 75 # fov horizontal
+    fovv: 51.2
+    yaw: [0,90,180,-90] # camera orientatiom for each camera
+    tilt: [10,10,10,10] # vertical tilt angles for each cameraid
     w: 5120 # capture pixel width
     h: 800 # capture height
     c: 3 # BGR
     pformat: BA81
     wr: 2560 # resized target width
+    calibration: calibration.npz # calibration numpy file
 
 marker:
     cameraids: [0,1,2,3] # do marker det only on camera [0-3]
     family: 36h11
     size: 0.18 # marker side in meters
-    ids: [1,2,3,4,5,6,7,8] # ids to keep
+    ids: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22] # ids to keep
 
 objdet:
     cameraids: [0,1,2,3] # do object det only on camera [0-3]
