@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from .angles import Angles
-from .NetworkTable import NetworkTable
+from .network_table import NetworkTable
 from .utils import get_dim, get_shm_frame
 
 
@@ -41,8 +41,8 @@ def marker_detect(cfg, shm, sem, procid, quit):
         # Do imarker detection only cameras specified in cfg
         for i in cfg["marker"]["cameraids"]:
             framei = frame[:, i * cam["imw"] : (i + 1) * cam["imw"], :]
-            framei = cv2.cvtColor(framei, cv2.COLOR_RGB2GRAY)
-            corners, markerids, rejects = detector.detectMarkers(framei)
+            frameig = cv2.cvtColor(framei, cv2.COLOR_RGB2GRAY)
+            corners, markerids, rejects = detector.detectMarkers(frameig)
 
             # Calculate and draw center point
             if markerids is not None:
