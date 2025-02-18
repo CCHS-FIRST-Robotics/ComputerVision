@@ -1,2 +1,2 @@
 #!/bin/sh
-python -m ccvision.capture
+python -m tools.capture

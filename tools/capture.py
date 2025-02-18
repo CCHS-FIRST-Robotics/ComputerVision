@@ -4,8 +4,8 @@ import os
 import cv2
 import yaml
 
-from .arducam_utils import ArducamUtils
-from .utils import fourcc, get_dim
+from ccvision.arducam_utils import ArducamUtils
+from ccvision.utils import fourcc, get_dim
 
 
 def capture(cam, imgdir):
