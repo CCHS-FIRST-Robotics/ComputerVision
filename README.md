@@ -23,6 +23,9 @@ Task currently supported
 ### Camera calibration
 ```sh calibrate.sh``` 
 
+### Marker Generator
+```python tools/marker_gen.py```
+
 ## April Tags
 Aruco Marker Detection
 
