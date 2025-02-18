@@ -32,6 +32,7 @@ def capture(cam, imgdir):
     cap.set(cv2.CAP_PROP_EXPOSURE, -4)
 
     tw, th = get_dim(w, h, cam["wr"])
+    print("Press s to save image. ESC to quit")
     i = 0
     while cap.isOpened():
         ret, frame = cap.read()
