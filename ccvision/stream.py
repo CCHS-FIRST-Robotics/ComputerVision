@@ -13,9 +13,6 @@ def stream(cfg, shm, sem, procid, quit):
     cam = cfg["camera"]
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
 
-    # the 4 cameras are combined into a wide image 400x2560
-    imw = cfg["camera"]["wr"] // 4  # one camera width
-
     # Open a GStreamer pipe for H.265 encoding and streaming
     gst_output_pipeline = (
         "appsrc ! "
@@ -37,7 +34,7 @@ def stream(cfg, shm, sem, procid, quit):
 
         # Stream only one camera specified in cfg default
         for i in cfg["objdet"]["cameraids"]:
-            framei = frame[:, i * imw : (i + 1) * imw, :]
+            framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
 
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"

@@ -109,6 +109,8 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(file)
 
     cam = cfg["camera"]
+    # precalculate constant values
+    cam['imw'] = cam["wr"] // 4  # one camera width
 
     # Load camera calibration
     if os.path.exists(cam["calibration"]):

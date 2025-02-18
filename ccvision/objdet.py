@@ -15,9 +15,6 @@ def object_detect(cfg, shm, sem, procid, quit):
 
     trt_model = YOLO("yolo11n.engine", task="detect")
 
-    # the 4 cameras are combined into a wide image 400x2560
-    imw = cfg["camera"]["wr"] // 4  # one camera width
-
     p_tm = time.time()
 
     while True:
@@ -27,7 +24,7 @@ def object_detect(cfg, shm, sem, procid, quit):
 
         # Do object detection only cameras specified in cfg
         for i in cfg["objdet"]["cameraids"]:
-            framei = frame[:, i * imw : (i + 1) * imw, :]
+            framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
             res = trt_model.predict(framei, verbose=False)
             results[i] = res
 
