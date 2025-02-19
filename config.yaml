@@ -1,5 +1,5 @@
 robot:
-    ip: localhost
+  #ip: localhost
     ip: 10.32.5.2 # roborio ip address
 
 # OV9782 global shutter camera x 4
