@@ -1,11 +1,12 @@
 robot:
-    #ip: 192.168.1.19
-    ip: 10.32.5.2
+    ip: localhost
+    ip: 10.32.5.2 # roborio ip address
 
 # OV9782 global shutter camera x 4
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera:
     id: 0 #/dev/video0
+    exposure: -4
     type: arducam
     fovh: 65 # fov horizontal
     yaw: [0,-90,180,90] # camera orientatiom for each camera
