@@ -39,7 +39,7 @@ def capture(cam, imgdir):
 
         frame = frame.reshape(h, w)
         frame = arducam_utils.convert(frame)
-        frame = cv2.resize(frame, (tw, th))
+        #frame = cv2.resize(frame, (tw, th))
 
         cv2.imshow(win_name, frame)
         k = cv2.waitKey(1)
