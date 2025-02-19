@@ -55,6 +55,13 @@ def marker_detect(cfg, shm, sem, procid, quit):
                     pixel_sz = c[:, 0].max() - c[:, 0].min()
 
                     angleh_rad, anglev_rad = angles.get_angle(cx, cy)
+                    angleh_rad += cam["yaw_rad"][i]
+
+                    if angleh_rad > np.pi:
+                        angleh_rad -= 2 * np.pi
+
+                    anglev_rad += cam["pitch_rad"][i]
+
                     dist = angles.get_distance(pixel_sz, cfg["marker"]["size"])
 
                     pose = 0
@@ -68,7 +75,8 @@ def marker_detect(cfg, shm, sem, procid, quit):
                 frames[i] = framei
 
         if len(markers) > 0:
-            network.send_array("tags", markers.insert(0, packetid))
+            markers.insert(0, packetid)
+            network.send_array("tags", markers)
             packetid += 1
 
         if cfg["display"]["marker"]:
