@@ -10,7 +10,8 @@ class NetworkTable:
         self.table = NetworkTables.getTable(table)
 
     def send_array(self, name, data):
-        self.table.putNumberArray(name, data)
+        if data is not None:
+            self.table.putNumberArray(name, data)
 
     def send(self, name, data):
         self.table.putNumber(name, data)
