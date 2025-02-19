@@ -110,7 +110,11 @@ if __name__ == "__main__":
 
     cam = cfg["camera"]
     # precalculate constant values
-    cam['imw'] = cam["wr"] // 4  # one camera width
+    cam["imw"] = cam["wr"] // 4  # one camera width
+
+    # conv to rad
+    cam["yaw_rad"] = [np.pi * a / 180 for a in cam["yaw"]]
+    cam["pitch_rad"] = [np.pi * a / 180 for a in cam["pitch"]]
 
     # Load camera calibration
     if os.path.exists(cam["calibration"]):
