@@ -1,32 +1,76 @@
-import os
+# https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+
+import glob
 
 import cv2
+import numpy as np
 
+# termination criteria
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-def calibrate(imgdir, camid):
-    board_size = (9,6)
-    frame_size = (640, 400)
-    crit = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-    points = []
-    
-    for entry in os.scandir(imgdir):
-        img = cv2.imread(entry.path)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
-        ret, corners = cv2.findChessboardCorners(gray, board_size, None)
-        
-        if ret:
-            #points.append(
-            #imgpoints.append(corners)
-            coerners = cv2.cornerSubPix(gray, corners, (11,11), (-1,-1), crit)
-            cv2.drawChessboardCorners(img, boardsize, corners, ret)
-            cv2.imshow("img", img)
-            cv2.waitKey(1)
-    
-    cv2.destroyAllWindows()
+# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+objp = np.zeros((6 * 7, 3), np.float32)
+objp[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
 
-    ret, cam_matrix, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, frame
+# Arrays to store object points and image points from all the images.
+objpoints = []  # 3d point in real world space
+imgpoints = []  # 2d points in image plane.
 
+images = glob.glob("imgs_out/*.png")
 
-if __name__ == "__main__":
-    calibrate(imgdir, camid)
+print("total", len(images))
+
+for fname in images:
+    img = cv2.imread(fname)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    grid = (7, 6)
+
+    # Find the chess board corners
+    # ret, corners = cv2.findChessboardCorners(gray, grid, cv2.CALIB_CB_ADAPTIVE_THRESH)
+    ret, corners = cv2.findChessboardCorners(gray, grid)
+    # ret, corners = cv2.findChessboardCornersSB(gray, grid, cv2.CALIB_CB_EXHAUSTIVE)
+
+    if corners is not None:
+        print(corners.shape)
+
+    # If found, add object points, image points (after refining them)
+    if ret:
+        print("success", fname)
+        objpoints.append(objp)
+
+        corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+        imgpoints.append(corners2)
+
+        # Draw and display the corners
+        cv2.drawChessboardCorners(img, grid, corners2, ret)
+        cv2.imshow("img", img)
+        cv2.waitKey()
+    else:
+        print("fail", fname)
+
+if len(objpoints) == 0:
+    print("No objpoints")
+    quit()
+
+print("Calibrate? y/n")
+k = cv2.waitKey()
+
+if k == ord("y"):
+    retval, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+        objpoints, imgpoints, gray.shape[::-1], None, None
+    )
+    print(retval)
+    print(mtx)
+    print(dist)
+    img = cv2.imread(images[0])
+    h, w = img.shape[:2]
+
+    newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
+    dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+    x, y, w, h = roi
+    dst = dst[y : y + h, x : x + w]
+    cv2.imshow("calibrated", dst)
+    cv2.waitKey()
+
+cv2.destroyAllWindows()
+print("done")
