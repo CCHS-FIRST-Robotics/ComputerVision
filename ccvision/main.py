@@ -46,7 +46,7 @@ def capture(cam, shm, sem, procid, quit):
     # Turn off auto exposure
     # cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
     # set exposure time
-    cap.set(cv2.CAP_PROP_EXPOSURE, cam['exposure'])
+    cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
 
     p_tm = time.time()
     tw, th = get_dim(w, h, cam["wr"])

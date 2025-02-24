@@ -32,8 +32,8 @@ def stream(cfg, shm, sem, procid, quit):
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))  # hwc 400, 2560, 3
 
         # Stream only one camera specified in cfg default
-        i = cfg['stream']['camid']    
-        framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
+        i = cfg["stream"]["camid"]
+        framei = frame[:, i * cam["imw"] : (i + 1) * cam["imw"], :]
 
         gst_process.stdin.write(framei.tobytes())
         if cv2.waitKey(1) == 27:
@@ -41,6 +41,6 @@ def stream(cfg, shm, sem, procid, quit):
             quit.value = 1
             break
 
-        if quit.value: # from other process
+        if quit.value:  # from other process
             gst_process.terminate()
             break

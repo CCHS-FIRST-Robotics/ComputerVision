@@ -24,7 +24,7 @@ def object_detect(cfg, shm, sem, procid, quit):
 
         # Do object detection only cameras specified in cfg
         for i in cfg["objdet"]["cameraids"]:
-            framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
+            framei = frame[:, i * cam["imw"] : (i + 1) * cam["imw"], :]
             res = trt_model.predict(framei, verbose=False)
             results[i] = res
 
@@ -34,8 +34,8 @@ def object_detect(cfg, shm, sem, procid, quit):
                 for r in res:
                     frames.append(r.plot())
 
-            iframe1 = np.hstack((frames[0],frames[1]))
-            iframe2 = np.hstack((frames[2],frames[3]))
+            iframe1 = np.hstack((frames[0], frames[1]))
+            iframe2 = np.hstack((frames[2], frames[3]))
             iframe = np.vstack((iframe1, iframe2))
 
             now = time.time()

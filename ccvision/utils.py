@@ -21,5 +21,6 @@ def get_shm_frame(shm, sem, shape):
     sem.release()
     return frame
 
+
 def rad2deg(rad):
     return 180 * rad / np.pi

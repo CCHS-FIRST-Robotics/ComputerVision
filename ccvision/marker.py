@@ -35,7 +35,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
     p_tm = time.time()
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
-        frames = [] 
+        frames = []
         markers = []
 
         # Do imarker detection only cameras specified in cfg
@@ -80,8 +80,8 @@ def marker_detect(cfg, shm, sem, procid, quit):
             packetid += 1
 
         if cfg["display"]["marker"]:
-            iframe1 = np.hstack((frames[0],frames[1]))
-            iframe2 = np.hstack((frames[2],frames[3]))
+            iframe1 = np.hstack((frames[0], frames[1]))
+            iframe2 = np.hstack((frames[2], frames[3]))
             iframe = np.vstack((iframe1, iframe2))
 
             now = time.time()
