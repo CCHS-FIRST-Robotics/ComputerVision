@@ -34,7 +34,9 @@ def object_detect(cfg, shm, sem, procid, quit):
                 for r in res:
                     frames.append(r.plot())
 
-            iframe = np.hstack(frames)
+            iframe1 = np.hstack((frames[0],frames[1]))
+            iframe2 = np.hstack((frames[2],frames[3]))
+            iframe = np.vstack((iframe1, iframe2))
 
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"

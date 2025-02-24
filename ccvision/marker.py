@@ -35,7 +35,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
     p_tm = time.time()
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
-        frames = {}
+        frames = [] 
         markers = []
 
         # Do imarker detection only cameras specified in cfg
@@ -72,7 +72,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
 
             if cfg["display"]["marker"]:
                 cv2.aruco.drawDetectedMarkers(framei, corners, markerids)
-                frames[i] = framei
+                frames.append(framei)
 
         if len(markers) > 0:
             markers.insert(0, packetid)
@@ -80,13 +80,15 @@ def marker_detect(cfg, shm, sem, procid, quit):
             packetid += 1
 
         if cfg["display"]["marker"]:
-            iframe = np.hstack(list(frames.values()))
+            iframe1 = np.hstack((frames[0],frames[1]))
+            iframe2 = np.hstack((frames[2],frames[3]))
+            iframe = np.vstack((iframe1, iframe2))
 
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
-            frame = cv2.putText(
+            iframe = cv2.putText(
                 iframe,
                 fps,
                 cfg["FPS"]["org"],
@@ -97,7 +99,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
                 cv2.LINE_AA,
             )
 
-            cv2.imshow(win_name, frame)
+            cv2.imshow(win_name, iframe)
 
             if cv2.waitKey(1) == 27:
                 quit.value = 1
