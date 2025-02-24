@@ -15,11 +15,11 @@ def stream(cfg, shm, sem, procid, quit):
 
     # Open a GStreamer pipe for H.265 encoding and streaming
     gst_output_pipeline = (
-        "appsrc ! "
+        f"appsrc ! "
         "videoconvert ! "
-        "nvv4l2h265enc bitrate=4000000 ! "
+        "nvv4l2h265enc bitrate={cfg['stream']['bitrate']} ! "
         "rtph265pay ! "
-        "udpsink host=192.168.1.50 port=5000"  # Replace with receiver's IP and port
+        "udpsink host={cfg['stream']['ip']} port={cfg['stream']['port']}"
     )
     gst_process = subprocess.Popen(
         gst_output_pipeline, shell=True, stdin=subprocess.PIPE
@@ -30,32 +30,17 @@ def stream(cfg, shm, sem, procid, quit):
     while True:
 
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))  # hwc 400, 2560, 3
-        results = {}
 
         # Stream only one camera specified in cfg default
-        for i in cfg["objdet"]["cameraids"]:
-            framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
+        i = cfg['stream']['camid']    
+        framei = frame[:, i * cam['imw'] : (i + 1) * cam['imw'], :]
 
-            now = time.time()
-            fps = f"FPS {1/(now-p_tm):.1f}"
-            p_tm = now
+        gst_process.stdin.write(framei.tobytes())
+        if cv2.waitKey(1) == 27:
+            gst_process.terminate()
+            quit.value = 1
+            break
 
-            framei = cv2.putText(
-                framei,
-                fps,
-                cfg["FPS"]["org"],
-                cv2.FONT_HERSHEY_SIMPLEX,
-                cfg["FPS"]["fontscale"],
-                cfg["FPS"]["color"],
-                cfg["FPS"]["thickness"],
-                cv2.LINE_AA,
-            )
-            gst_process.stdin.write(framei.tobytes())
-            if cv2.waitKey(1) == 27:
-                gst_process.terminate()
-                quit.value = 1
-                break
-
-        if quit.value:
+        if quit.value: # from other process
             gst_process.terminate()
             break

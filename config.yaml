@@ -31,10 +31,11 @@ stream:
     camid: 0 # default camera
     ip: 192.168.1.50
     port: 5000
+    bitrate: 4000000
 
 tasks: # what tasks to run
     marker: True
-    objdet: True
+    objdet: False
     stream: False
 
 display: # process to display images
