@@ -10,6 +10,7 @@ import yaml
 
 from .arducam_utils import ArducamUtils
 from .marker import marker_detect
+from .marker_single_cam import marker_detect_single
 from .objdet import object_detect
 from .stream import stream
 from .utils import fourcc, get_dim
@@ -144,8 +145,12 @@ if __name__ == "__main__":
         proc_objdet.start()
 
     if cfg["tasks"]["stream"]:
-        proc_stream = Process(target=stream, args=(cfg, shm, sem, 2, quit))
+        proc_stream = Process(target=stream, args=(cfg, shm, sem, 3, quit))
         proc_stream.start()
+
+    if cfg["tasks"]["marker_single"]:
+        proc_marker_s = Process(target=marker_detect_single, args=(cfg, 4, quit))
+        proc_marker_s.start()
 
     proc_cap.join()
 
@@ -157,6 +162,9 @@ if __name__ == "__main__":
 
     if cfg["tasks"]["stream"]:
         proc_stream.join()
+
+    if cfg["tasks"]["marker_single"]:
+        proc_marker_s.join()
 
     shm.close()
     shm.unlink()

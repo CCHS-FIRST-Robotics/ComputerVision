@@ -1,6 +1,6 @@
 robot:
-    #ip: localhost
-    ip: 10.32.5.2 # roborio ip address
+    ip: localhost
+      #ip: 10.32.5.2 # roborio ip address
 
 # OV9782 global shutter camera x 4
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
@@ -17,6 +17,15 @@ camera:
     pformat: BA81
     wr: 2560 # resized target width
     calibration: calibration.npz # calibration numpy file
+
+camera_single:
+    id: 1
+    fovh: 50
+    yaw: 0
+    pitch: 0
+    w: 640
+    h: 480
+    c: 3
 
 marker:
     cameraids: [0,1,2,3] # do marker det only on camera [0-3]
@@ -37,11 +46,13 @@ tasks: # what tasks to run
     marker: True
     objdet: False
     stream: False
+    marker_single: True
 
 display: # process to display images
     main: False
     marker: True
     objdet: False
+    marker_single: True
 
 FPS: # FPS display settings
     org: [5, 20]

@@ -47,7 +47,6 @@ def marker_detect(cfg, shm, sem, procid, quit):
                 w = cam["imw"]
                 newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam["mtx"], cam["dist"], (w,th), 1, (w,th))
                 framei = cv2.undistort(framei, cam["mtx"], cam["dist"], None, newcameramtx)
-                print(roi)
                 x, y, w, h = roi
                 framei = framei[y:y+h, x:x+w]
 
