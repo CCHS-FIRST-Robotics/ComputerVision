@@ -31,7 +31,8 @@ def marker_detect_single(cfg, procid, quit):
     cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam["w"])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam["h"])
-
+    cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+    
     w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     h = int(h)
