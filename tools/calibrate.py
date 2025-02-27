@@ -63,6 +63,12 @@ if k == ord("y"):
     print(retval)
     print(mtx)
     print(dist)
+
+    np.savez_compressed('calibration.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+    
+    print("saved calibration.npz")
+    
+
     img = cv2.imread(images[0])
     h, w = img.shape[:2]
 
