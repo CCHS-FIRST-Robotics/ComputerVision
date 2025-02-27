@@ -1,0 +1,12 @@
+[Unit]
+Description="CCHS computer vision"
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/local/bin/ccvision.sh
+Restart=always
+StartLimitInterval=10
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
