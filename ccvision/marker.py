@@ -41,6 +41,16 @@ def marker_detect(cfg, shm, sem, procid, quit):
         # Do imarker detection only cameras specified in cfg
         for i in cfg["marker"]["cameraids"]:
             framei = frame[:, i * cam["imw"] : (i + 1) * cam["imw"], :]
+
+
+            if cam["mtx"] is not None and cam["dist"] is not None:
+                w = cam["imw"]
+                newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam["mtx"], cam["dist"], (w,th), 1, (w,th))
+                framei = cv2.undistort(framei, cam["mtx"], cam["dist"], None, newcameramtx)
+                print(roi)
+                x, y, w, h = roi
+                framei = framei[y:y+h, x:x+w]
+
             frameig = cv2.cvtColor(framei, cv2.COLOR_RGB2GRAY)
             corners, markerids, rejects = detector.detectMarkers(frameig)
 
