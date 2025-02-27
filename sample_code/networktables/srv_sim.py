@@ -29,10 +29,10 @@ try:
         if tags is not None:
 #            print(tags)
             pid = tags[0]
-            n = (len(tags) - 1) // 5
+            n = (len(tags) - 1) // 4
 
             for i in range(n):
-                ix = i * 5 + 1
+                ix = i * 4 + 1
                 id = int(tags[ix])
                 angleh = tags[ix+2] * 180 / np.pi
                 anglev = tags[ix+3] * 180 / np.pi
