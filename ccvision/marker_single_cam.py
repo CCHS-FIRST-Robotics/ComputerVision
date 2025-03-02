@@ -1,3 +1,4 @@
+import logging
 import time
 
 import cv2
@@ -10,14 +11,21 @@ from .utils import get_dim
 
 def marker_detect_single(cfg, procid, quit):
 
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    logging.info(f"marker detect single pid {procid}")
+
     win_name = f"marker det {procid}"
     cam = cfg["camera_single"]
     mark = cfg["marker"]
 
     # conv to rad
-    cam["yaw_rad"] = np.pi *  cam["yaw"] / 180    
-    cam["pitch_rad"] = np.pi *  cam["pitch"] / 180
-    
+    cam["yaw_rad"] = np.pi * cam["yaw"] / 180
+    cam["pitch_rad"] = np.pi * cam["pitch"] / 180
+
     if mark["family"] == "36h11":
         marker_dict = cv2.aruco.DICT_APRILTAG_36h11
     else:
@@ -32,27 +40,32 @@ def marker_detect_single(cfg, procid, quit):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam["w"])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam["h"])
     cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
-    
+
     w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     h = int(h)
     w = int(w)
-    
+
     angles = Angles(w, h, cam["fovh"])
 
     # Create a NetworkTables instance
     network = NetworkTable(cfg, "tags")
     packetid = 1000
 
-
+    i = 0
     p_tm = time.time()
     while True:
 
         markers = []
-        
+
         ret, frame = cap.read()
         frameig = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         corners, markerids, rejects = detector.detectMarkers(frameig)
+
+        if i % 10 == 0:
+            logging.info(f"mark single {i}")
+
+        i += 1
 
         # Calculate and draw center point
         if markerids is not None:
@@ -81,15 +94,14 @@ def marker_detect_single(cfg, procid, quit):
                 if cfg["display"]["marker"]:
                     cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
 
-        if cfg["display"]["marker_single"]:
-            cv2.aruco.drawDetectedMarkers(frame, corners, markerids)
-
         if len(markers) > 0:
             markers.insert(0, packetid)
             network.send_array("tags", markers)
             packetid += 1
 
         if cfg["display"]["marker_single"]:
+            cv2.aruco.drawDetectedMarkers(frame, corners, markerids)
+
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
@@ -112,4 +124,5 @@ def marker_detect_single(cfg, procid, quit):
                 break
 
         if quit.value:
+            logging.info(f"marker detect single quit")
             break
