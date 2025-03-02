@@ -18,7 +18,7 @@ Run locally
 ```sh run.sh```
 
 Start/stop service  
-```sudo systemctl start ccvision.service```
+```sudo systemctl start ccvision.service```  
 ```sudo systemctl stop ccvision.service```
 
 ### Tools
@@ -35,7 +35,7 @@ Marker Generator
 Chessboard Generator  
 ```python tools/chessboard.py```
 
-Auto bounding box detection with text queries 
+Auto bounding box detection with text queries  
 ```python tools/auto_bb.py -d imgdir -p prompt```
 
 example  
