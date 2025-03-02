@@ -10,7 +10,6 @@ def main(args):
     NetworkTables.initialize()
     
     sd = NetworkTables.getTable("tags")
-    #sd.addEntryListener(gotTags)
 
     try:
         while True:
