@@ -13,11 +13,11 @@ Task currently supported
 ### Setup
 ```pip install -r requirements.txt```
 
-## Projects
-### Run locally
+## CCVision
+Run locally  
 ```sh run.sh```
 
-### Start/stop service
+Start/stop service  
 ```sudo systemctl start ccvision.service```
 ```sudo systemctl stop ccvision.service```
 
@@ -34,6 +34,9 @@ Marker Generator
 
 Chessboard Generator  
 ```python tools/chessboard.py```
+
+Auto bounding box detection  
+```python tools/auto_bb.py -d imgdir```
 
 ### Unit Tests
 python -m unittest
