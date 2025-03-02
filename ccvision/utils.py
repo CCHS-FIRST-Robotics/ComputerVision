@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 
@@ -24,3 +26,14 @@ def get_shm_frame(shm, sem, shape):
 
 def rad2deg(rad):
     return 180 * rad / np.pi
+
+
+def is_daemon():
+    try:
+        ppid = os.getpid()
+        with open(f"/proc/{ppid}/comm", "r") as f:
+            pp = f.read().strip()
+            return pp == "systemd"
+
+    except Exception:
+        return False
