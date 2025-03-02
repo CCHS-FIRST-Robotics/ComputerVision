@@ -12,7 +12,9 @@ def main(s, x, y):
     z = np.repeat(z, s, axis=0)
     z = np.repeat(z, s, axis=1)
     z *= 255
-    cv2.imwrite(f"chessboard_{x}_{y}.png", z)
+    fn = f"chessboard_{x}_{y}.png"
+    cv2.imwrite(fn, z)
+    print(f"Saved {x}x{y} chessboard to {fn}")
 
 
 if __name__ == "__main__":
