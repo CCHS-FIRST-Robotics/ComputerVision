@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import signal
 import time
@@ -13,7 +14,7 @@ from .marker import marker_detect
 from .marker_single_cam import marker_detect_single
 from .objdet import object_detect
 from .stream import stream
-from .utils import fourcc, get_dim
+from .utils import fourcc, get_dim, is_daemon
 
 quit = Value("i", 0)
 
@@ -52,8 +53,20 @@ def capture(cam, shm, sem, procid, quit):
     p_tm = time.time()
     tw, th = get_dim(w, h, cam["wr"])
 
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    logging.info("capture start")
+    i = 0
     while cap.isOpened():
         ret, frame = cap.read()
+
+        if not ret:
+            break
+
         sem.acquire()
 
         frame = frame.reshape(h, w)
@@ -66,6 +79,11 @@ def capture(cam, shm, sem, procid, quit):
         shm_array = np.ndarray(shape=frame.shape, dtype=np.uint8, buffer=shm.buf)
         np.copyto(shm_array, frame)
         sem.release()
+
+        if i % 30 == 0:
+            logging.info(f"capture {i}")
+
+        i += 1
 
         if cfg["display"]["main"]:
             now = time.time()
@@ -89,10 +107,13 @@ def capture(cam, shm, sem, procid, quit):
                 break
 
         if quit.value:
+
+            logging.info("capture quit 1")
             break
 
     cap.release()
     cv2.destroyAllWindows()
+    logging.info("capture quit")
 
 
 if __name__ == "__main__":
@@ -109,7 +130,21 @@ if __name__ == "__main__":
     with open(args.config, "r") as file:
         cfg = yaml.safe_load(file)
 
+    # Configure logging
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    # turn off display when running as a daemon
+    if is_daemon():
+        cfg["is_daemon"] = True
+        for t in cfg["display"]:
+            cfg["display"][t] = False
+
     cam = cfg["camera"]
+
     # precalculate constant values
     cam["imw"] = cam["wr"] // 4  # one camera width
 
@@ -151,6 +186,13 @@ if __name__ == "__main__":
     if cfg["tasks"]["marker_single"]:
         proc_marker_s = Process(target=marker_detect_single, args=(cfg, 4, quit))
         proc_marker_s.start()
+
+    tasks = []
+    for k, v in cfg["tasks"].items():
+        if v:
+            tasks.append(k)
+
+    logging.info("ccvision starting with processes: " + " ".join(tasks))
 
     proc_cap.join()
 
