@@ -21,17 +21,22 @@ Task currently supported
 ```sudo systemctl start ccvision.service```
 ```sudo systemctl stop ccvision.service```
 
-### Image capture
+### Tools
+
+Image capture  
 ```python -m tools.capture```
 
-### Camera calibration
+Camera calibration  
 ```python tools/calibrate.py -d calibration_images``` 
 
-### Marker Generator
+Marker Generator  
 ```python tools/marker_gen.py```
 
-### Chessboard Generator
+Chessboard Generator  
 ```python tools/chessboard.py```
+
+### Unit Tests
+python -m unittest
 
 ## April Tags
 Aruco Marker Detection
