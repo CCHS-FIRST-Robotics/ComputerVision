@@ -1,0 +1,11 @@
+jetson_stats==4.3.0
+numpy==1.23.5
+opencv_python==4.10.0.84
+pynetworktables==2021.0.0
+Pillow==11.1.0
+PyYAML==6.0.2
+torch==2.5.0a0+872d972e41.nv24.8
+transformers==4.49.0
+ultralytics==8.3.56
+v4l2_fix==0.3
+v4l2_python3==0.3.5
