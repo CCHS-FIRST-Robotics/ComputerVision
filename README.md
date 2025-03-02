@@ -42,7 +42,7 @@ example
 ```python tools/auto_bb.py -d images -p orange ring```
 
 ### Unit Tests
-python -m unittest
+```python -m unittest```
 
 ## April Tags
 Aruco Marker Detection
