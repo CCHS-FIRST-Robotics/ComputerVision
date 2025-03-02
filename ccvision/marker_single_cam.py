@@ -39,7 +39,16 @@ def marker_detect_single(cfg, procid, quit):
     cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam["w"])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam["h"])
-    cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+    
+    if cam['exposure'] == "auto":
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+        print("auto exposure single")
+    else:
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+        #cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+
+    print("single exposure",cap.get(cv2.CAP_PROP_AUTO_EXPOSURE))
 
     w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)

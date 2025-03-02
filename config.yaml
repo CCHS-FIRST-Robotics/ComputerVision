@@ -6,7 +6,7 @@ robot:
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera:
     id: 0 #/dev/video0
-    exposure: -4 # -4 max 
+    exposure: auto # -4 max sensitivity can be higher, 'auto' for auto exposure 
     type: arducam
     fovh: 65 # fov horizontal
     yaw: [0,-90,180,90] # camera orientatiom for each camera
@@ -20,7 +20,7 @@ camera:
 
 camera_single:
     id: 1
-    exposure: -4 # -4 max 
+    exposure: auto # -4 max sensitvity
     fovh: 50
     yaw: 0
     pitch: 0

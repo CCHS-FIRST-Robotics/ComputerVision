@@ -45,10 +45,15 @@ def capture(cam, shm, sem, procid, quit):
         cap.set(cv2.CAP_PROP_CONVERT_RGB, arducam_utils.convert2rgb)
         arducam_utils.write_dev(ArducamUtils.CHANNEL_SWITCH_REG, -1)
 
-    # Turn off auto exposure
-    # cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
     # set exposure time
-    cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+    if cam['exposure'] == "auto":
+        print("auto exposure")
+        print("mm",cap.get(cv2.CAP_PROP_AUTO_EXPOSURE))
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+        print("main",cap.get(cv2.CAP_PROP_AUTO_EXPOSURE))
+    else:
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+        cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
 
     p_tm = time.time()
     tw, th = get_dim(w, h, cam["wr"])
