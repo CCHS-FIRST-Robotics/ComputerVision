@@ -3,10 +3,14 @@ Description="CCHS computer vision"
 After=multi-user.target
 
 [Service]
-ExecStart=/usr/local/bin/ccvision.sh
+ExecStart=/home/jetson/.pyenv/shims/python -m ccvision.main
+WorkingDirectory=/home/jetson/ComputerVision
 Restart=always
-StartLimitInterval=10
-RestartSec=10
+User=jetson
+Group=jetson
+#StartLimitInterval=10
+#RestartSec=10
+Environment="PYTHONUNBUFFERED=1"
 
 [Install]
 WantedBy=multi-user.target
