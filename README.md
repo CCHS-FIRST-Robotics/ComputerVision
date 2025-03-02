@@ -14,17 +14,24 @@ Task currently supported
 ```pip install -r requirements.txt```
 
 ## Projects
-### Run
+### Run locally
 ```sh run.sh```
 
+### Start/stop service
+```sudo systemctl start ccvision.service```
+```sudo systemctl stop ccvision.service```
+
 ### Image capture
-```sh capture.sh```
+```python -m tools.capture```
 
 ### Camera calibration
-```sh calibrate.sh``` 
+```python tools/calibrate.py -d calibration_images``` 
 
 ### Marker Generator
 ```python tools/marker_gen.py```
+
+### Chessboard Generator
+```python tools/chessboard.py```
 
 ## April Tags
 Aruco Marker Detection
