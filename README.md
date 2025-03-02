@@ -35,8 +35,11 @@ Marker Generator
 Chessboard Generator  
 ```python tools/chessboard.py```
 
-Auto bounding box detection  
-```python tools/auto_bb.py -d imgdir```
+Auto bounding box detection with text queries 
+```python tools/auto_bb.py -d imgdir -p prompt```
+
+example  
+```python tools/auto_bb.py -d images -p orange ring```
 
 ### Unit Tests
 python -m unittest
