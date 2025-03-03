@@ -4,7 +4,7 @@ robot:
 
 # OV9782 global shutter camera x 4
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
-camera:
+camera4cam:
     id: 0 #/dev/video0
     exposure: auto # -4 max sensitivity can be higher, 'auto' for auto exposure 
     type: arducam
@@ -16,11 +16,12 @@ camera:
     c: 3 # BGR
     pformat: BA81
     wr: 2560 # resized target width
+    cameraids: [0,1,2,3] # do marker det only on camera [0-3]
     calibration: calibration.npz # calibration numpy file
 
-camera_single:
+camera:
     id: 1
-    exposure: auto # -4 max sensitvity
+    exposure: -3 # -4 max sensitvity
     fovh: 50
     yaw: 0
     pitch: 0
@@ -32,9 +33,9 @@ marker:
     cameraids: [0,1,2,3] # do marker det only on camera [0-3]
     family: 36h11
     size: 0.1651 # marker side in meters
-    ids: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22] # ids to keep
 
 objdet:
+    model: model/yolo11n.engine # trt model
     cameraids: [0,1,2,3] # do object det only on camera [0-3]
 
 stream:
@@ -44,16 +45,16 @@ stream:
     bitrate: 4000000
 
 tasks: # what tasks to run
-    marker: True
+    marker4cam: True
     objdet: False
     stream: False
-    marker_single: True
+    marker: True
 
 display: # process to display images
     main: False
-    marker: True
+    marker4cam: True
     objdet: False
-    marker_single: True
+    marker: True
 
 FPS: # FPS display settings
     org: [5, 20]
