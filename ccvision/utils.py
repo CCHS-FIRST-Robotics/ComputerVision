@@ -47,11 +47,4 @@ def put_fps(cfg, frame, fps):
 
 
 def is_daemon():
-    try:
-        ppid = os.getpid()
-        with open(f"/proc/{ppid}/comm", "r") as f:
-            pp = f.read().strip()
-            return pp == "systemd"
-
-    except Exception:
-        return False
+    return os.getppid() == 1

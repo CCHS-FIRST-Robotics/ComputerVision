@@ -68,7 +68,6 @@ def capture(cam, shm, sem, quit):
 
     logging.info("capture start")
 
-    i = 0
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -88,11 +87,6 @@ def capture(cam, shm, sem, quit):
         np.copyto(shm_array, frame)
         sem.release()
 
-        if i % 30 == 0:
-            logging.info(f"capture {i}")
-
-        i += 1
-
         if cfg["display"]["main"]:
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"
@@ -106,8 +100,7 @@ def capture(cam, shm, sem, quit):
                 break
 
         if quit.value:
-
-            logging.info("capture quit 1")
+            logging.info("capture quit")
             break
 
     cap.release()
@@ -141,6 +134,8 @@ if __name__ == "__main__":
         cfg["is_daemon"] = True
         for t in cfg["display"]:
             cfg["display"][t] = False
+
+    logging.info(f"isdameon {is_daemon()}")
 
     cam = cfg["camera4cam"]
 

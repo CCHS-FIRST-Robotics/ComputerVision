@@ -1,3 +1,4 @@
+import logging
 import time
 
 import cv2
@@ -50,6 +51,14 @@ def marker_detect(cfg, quit):
     network = NetworkTable(cfg, "tags")
     packetid = 1000
 
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    logging.info("marker_detect single cam start")
+
     p_tm = time.time()
     while True:
         ret, frame = cap.read()
@@ -73,6 +82,7 @@ def marker_detect(cfg, quit):
                 break
 
         if quit.value:
+            logging.info("marker_detect single cam quit")
             break
 
 
@@ -93,7 +103,16 @@ def marker_detect4cam(cfg, shm, sem, quit):
     network = NetworkTable(cfg, "tags")
     packetid = 0
 
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    logging.info("marker_detect4cam start")
+
     p_tm = time.time()
+    cnt = 0
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
         frames = []
@@ -114,7 +133,6 @@ def marker_detect4cam(cfg, shm, sem, quit):
                 )
                 x, y, w, h = roi
                 framei = framei[y : y + h, x : x + w]
-
             frames.append(framei)
             mrkrs = detector.detect(frame, cam["yaw_rad"][i], cam["pitch_rad"][i])
             markers.extend(mrkrs)
@@ -134,7 +152,6 @@ def marker_detect4cam(cfg, shm, sem, quit):
             p_tm = now
 
             put_fps(cfg, iframe, fps)
-
             cv2.imshow(win_name, iframe)
 
             if cv2.waitKey(1) == 27:
@@ -142,4 +159,5 @@ def marker_detect4cam(cfg, shm, sem, quit):
                 break
 
         if quit.value:
+            logging.info("marker_detect4cam quit")
             break

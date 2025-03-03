@@ -1,3 +1,4 @@
+import logging
 import time
 
 import cv2
@@ -14,6 +15,14 @@ def object_detect(cfg, shm, sem, quit):
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
 
     trt_model = YOLO(cfg["objdet"]["model"], task="detect")
+
+    logging.basicConfig(
+        filename=cfg["logfile"],
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    logging.info(f"object det start model {cfg['objdet']['model']}")
 
     p_tm = time.time()
 
@@ -50,4 +59,5 @@ def object_detect(cfg, shm, sem, quit):
                 break
 
         if quit.value:
+            logging.info(f"object det quit")
             break
