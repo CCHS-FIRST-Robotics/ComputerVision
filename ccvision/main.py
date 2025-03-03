@@ -10,11 +10,10 @@ import numpy as np
 import yaml
 
 from .arducam_utils import ArducamUtils
-from .marker import marker_detect
-from .marker_single_cam import marker_detect_single
+from .marker import marker_detect, marker_detect4cam
 from .objdet import object_detect
 from .stream import stream
-from .utils import fourcc, get_dim, is_daemon
+from .utils import deg2rad, fourcc, get_dim, is_daemon, put_fps
 
 quit = Value("i", 0)
 
@@ -25,8 +24,8 @@ def signal_handler(sig, frame):
     # sys.exit(0)
 
 
-def capture(cam, shm, sem, procid, quit):
-    win_name = f"main {procid}"
+def capture(cam, shm, sem, quit):
+    win_name = "capture"
     pixelformat = fourcc(cam["pformat"])
 
     cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
@@ -46,14 +45,17 @@ def capture(cam, shm, sem, procid, quit):
         arducam_utils.write_dev(ArducamUtils.CHANNEL_SWITCH_REG, -1)
 
     # set exposure time
-    if cam['exposure'] == "auto":
-        print("auto exposure")
-        print("mm",cap.get(cv2.CAP_PROP_AUTO_EXPOSURE))
+    if cam["exposure"] == "auto":
         cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
-        print("main",cap.get(cv2.CAP_PROP_AUTO_EXPOSURE))
     else:
         cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
         cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+
+    print(
+        "auto exposure 4c",
+        cap.get(cv2.CAP_PROP_AUTO_EXPOSURE),
+        cap.get(cv2.CAP_PROP_EXPOSURE),
+    )
 
     p_tm = time.time()
     tw, th = get_dim(w, h, cam["wr"])
@@ -65,6 +67,7 @@ def capture(cam, shm, sem, procid, quit):
     )
 
     logging.info("capture start")
+
     i = 0
     while cap.isOpened():
         ret, frame = cap.read()
@@ -95,16 +98,7 @@ def capture(cam, shm, sem, procid, quit):
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
-            frame = cv2.putText(
-                frame,
-                fps,
-                cfg["FPS"]["org"],
-                cv2.FONT_HERSHEY_SIMPLEX,
-                cfg["FPS"]["fontscale"],
-                cfg["FPS"]["color"],
-                cfg["FPS"]["thickness"],
-                cv2.LINE_AA,
-            )
+            put_fps(cfg, frame, fps)
             cv2.imshow(win_name, frame)
 
             if cv2.waitKey(1) == 27:
@@ -148,14 +142,14 @@ if __name__ == "__main__":
         for t in cfg["display"]:
             cfg["display"][t] = False
 
-    cam = cfg["camera"]
+    cam = cfg["camera4cam"]
 
     # precalculate constant values
     cam["imw"] = cam["wr"] // 4  # one camera width
 
     # conv to rad
-    cam["yaw_rad"] = [np.pi * a / 180 for a in cam["yaw"]]
-    cam["pitch_rad"] = [np.pi * a / 180 for a in cam["pitch"]]
+    cam["yaw_rad"] = [deg2rad(a) for a in cam["yaw"]]
+    cam["pitch_rad"] = [deg2rad(a) for a in cam["pitch"]]
 
     # Load camera calibration
     if os.path.exists(cam["calibration"]):
@@ -173,24 +167,24 @@ if __name__ == "__main__":
     shm = shared_memory.SharedMemory(create=True, size=shm_sz)
     sem = Semaphore(1)
 
-    proc_cap = Process(target=capture, args=(cam, shm, sem, 0, quit))
+    proc_cap = Process(target=capture, args=(cam, shm, sem, quit))
     proc_cap.start()
 
-    if cfg["tasks"]["marker"]:
-        proc_marker = Process(target=marker_detect, args=(cfg, shm, sem, 1, quit))
-        proc_marker.start()
+    if cfg["tasks"]["marker4cam"]:
+        proc_marker4c = Process(target=marker_detect4cam, args=(cfg, shm, sem, quit))
+        proc_marker4c.start()
 
     if cfg["tasks"]["objdet"]:
-        proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, 2, quit))
+        proc_objdet = Process(target=object_detect, args=(cfg, shm, sem, quit))
         proc_objdet.start()
 
     if cfg["tasks"]["stream"]:
-        proc_stream = Process(target=stream, args=(cfg, shm, sem, 3, quit))
+        proc_stream = Process(target=stream, args=(cfg, shm, sem, quit))
         proc_stream.start()
 
-    if cfg["tasks"]["marker_single"]:
-        proc_marker_s = Process(target=marker_detect_single, args=(cfg, 4, quit))
-        proc_marker_s.start()
+    if cfg["tasks"]["marker"]:
+        proc_marker = Process(target=marker_detect, args=(cfg, quit))
+        proc_marker.start()
 
     tasks = []
     for k, v in cfg["tasks"].items():
@@ -201,8 +195,8 @@ if __name__ == "__main__":
 
     proc_cap.join()
 
-    if cfg["tasks"]["marker"]:
-        proc_marker.join()
+    if cfg["tasks"]["marker4cam"]:
+        proc_marker4c.join()
 
     if cfg["tasks"]["objdet"]:
         proc_objdet.join()
@@ -210,8 +204,8 @@ if __name__ == "__main__":
     if cfg["tasks"]["stream"]:
         proc_stream.join()
 
-    if cfg["tasks"]["marker_single"]:
-        proc_marker_s.join()
+    if cfg["tasks"]["marker"]:
+        proc_marker.join()
 
     shm.close()
     shm.unlink()

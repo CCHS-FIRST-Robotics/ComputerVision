@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import numpy as np
 
 
@@ -26,6 +27,23 @@ def get_shm_frame(shm, sem, shape):
 
 def rad2deg(rad):
     return 180 * rad / np.pi
+
+
+def deg2rad(deg):
+    return np.pi * deg / 180
+
+
+def put_fps(cfg, frame, fps):
+    frame = cv2.putText(
+        frame,
+        fps,
+        cfg["FPS"]["org"],
+        cv2.FONT_HERSHEY_SIMPLEX,
+        cfg["FPS"]["fontscale"],
+        cfg["FPS"]["color"],
+        cfg["FPS"]["thickness"],
+        cv2.LINE_AA,
+    )
 
 
 def is_daemon():

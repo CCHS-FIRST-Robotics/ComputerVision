@@ -4,16 +4,16 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from .utils import get_dim, get_shm_frame
+from .utils import get_dim, get_shm_frame, put_fps
 
 
-def object_detect(cfg, shm, sem, procid, quit):
-    win_name = f"obj det {procid}"
+def object_detect(cfg, shm, sem, quit):
+    win_name = f"obj det"
 
-    cam = cfg["camera"]
+    cam = cfg["camera4cam"]
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
 
-    trt_model = YOLO("yolo11n.engine", task="detect")
+    trt_model = YOLO(cfg["objdet"]["model"], task="detect")
 
     p_tm = time.time()
 
@@ -42,17 +42,8 @@ def object_detect(cfg, shm, sem, procid, quit):
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
-            frame = cv2.putText(
-                iframe,
-                fps,
-                cfg["FPS"]["org"],
-                cv2.FONT_HERSHEY_SIMPLEX,
-                cfg["FPS"]["fontscale"],
-                cfg["FPS"]["color"],
-                cfg["FPS"]["thickness"],
-                cv2.LINE_AA,
-            )
-            cv2.imshow(win_name, frame)
+            put_fps(cfg, iframe, fps)
+            cv2.imshow(win_name, iframe)
 
             if cv2.waitKey(1) == 27:
                 quit.value = 1

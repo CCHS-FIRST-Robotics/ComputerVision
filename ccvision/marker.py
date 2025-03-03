@@ -4,29 +4,90 @@ import cv2
 import numpy as np
 
 from .angles import Angles
+from .marker_detector import MarkerDetector
 from .network_table import NetworkTable
-from .utils import get_dim, get_shm_frame
+from .utils import deg2rad, get_dim, get_shm_frame, put_fps
 
 
-def marker_detect(cfg, shm, sem, procid, quit):
+def marker_detect(cfg, quit):
 
-    win_name = f"marker det {procid}"
+    win_name = "marker det"
     cam = cfg["camera"]
+    mark = cfg["marker"]
+
+    # conv to rad
+    cam["yaw_rad"] = deg2rad(cam["yaw"])
+    cam["pitch_rad"] = deg2rad(cam["pitch"])
+
+    cap = cv2.VideoCapture(cam["id"], cv2.CAP_V4L2)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam["w"])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam["h"])
+
+    if cam["exposure"] == "auto":
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+    else:
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+        cap.set(cv2.CAP_PROP_EXPOSURE, cam["exposure"])
+
+    print(
+        "auto exposure",
+        cap.get(cv2.CAP_PROP_AUTO_EXPOSURE),
+        cap.get(cv2.CAP_PROP_EXPOSURE),
+    )
+
+    w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    h = int(h)
+    w = int(w)
+
+    angles = Angles(w, h, cam["fovh"])
+    detector = MarkerDetector(
+        mark["family"], mark["size"], angles, cfg["display"]["marker"]
+    )
+
+    # Create a NetworkTables instance
+    network = NetworkTable(cfg, "tags")
+    packetid = 1000
+
+    p_tm = time.time()
+    while True:
+        ret, frame = cap.read()
+        markers = detector.detect(frame, cam["yaw_rad"], cam["pitch_rad"])
+
+        if len(markers) > 0:
+            markers.insert(0, packetid)
+            network.send_array("tags", markers)
+            packetid += 1
+
+        if cfg["display"]["marker"]:
+            now = time.time()
+            fps = f"FPS {1/(now-p_tm):.1f}"
+            p_tm = now
+
+            put_fps(cfg, frame, fps)
+            cv2.imshow(win_name, frame)
+
+            if cv2.waitKey(1) == 27:
+                quit.value = 1
+                break
+
+        if quit.value:
+            break
+
+
+def marker_detect4cam(cfg, shm, sem, quit):
+
+    win_name = "marker det 4 cam"
+    cam = cfg["camera4cam"]
     mark = cfg["marker"]
 
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
 
-    if mark["family"] == "36h11":
-        marker_dict = cv2.aruco.DICT_APRILTAG_36h11
-    else:
-        print("unknown marker", mark["family"])
-        return
-
-    dictionary = cv2.aruco.getPredefinedDictionary(marker_dict)
-    detectorparams = cv2.aruco.DetectorParameters()
-    detector = cv2.aruco.ArucoDetector(dictionary, detectorparams)
-
     angles = Angles(cam["imw"], th, cam["fovh"])
+    detector = MarkerDetector(
+        mark["family"], mark["size"], angles, cfg["display"]["marker4cam"]
+    )
 
     # Create a NetworkTables instance
     network = NetworkTable(cfg, "tags")
@@ -38,58 +99,32 @@ def marker_detect(cfg, shm, sem, procid, quit):
         frames = []
         markers = []
 
-        # Do imarker detection only cameras specified in cfg
-        for i in cfg["marker"]["cameraids"]:
+        # Do marker detection only cameras specified in cfg
+        for i in cam["cameraids"]:
             framei = frame[:, i * cam["imw"] : (i + 1) * cam["imw"], :]
-
 
             if cam["mtx"] is not None and cam["dist"] is not None:
                 w = cam["imw"]
-                newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam["mtx"], cam["dist"], (w,th), 1, (w,th))
-                framei = cv2.undistort(framei, cam["mtx"], cam["dist"], None, newcameramtx)
+                # TODO preprocess outside loop
+                newcameramtx, roi = cv2.getOptimalNewCameraMatrix(
+                    cam["mtx"], cam["dist"], (w, th), 1, (w, th)
+                )
+                framei = cv2.undistort(
+                    framei, cam["mtx"], cam["dist"], None, newcameramtx
+                )
                 x, y, w, h = roi
-                framei = framei[y:y+h, x:x+w]
+                framei = framei[y : y + h, x : x + w]
 
-            frameig = cv2.cvtColor(framei, cv2.COLOR_RGB2GRAY)
-            corners, markerids, rejects = detector.detectMarkers(frameig)
-
-            # Calculate and draw center point
-            if markerids is not None:
-                for c, id in zip(corners, markerids):  # corners, markerid
-                    c = c.squeeze()
-                    cx = int(c[:, 0].sum() / 4)
-                    cy = int(c[:, 1].sum() / 4)
-
-                    # TODO change to use sides
-                    pixel_sz1 = c[:, 0].max() - c[:, 0].min()
-                    pixel_sz2 = c[:, 1].max() - c[:, 1].min()
-                    pixel_sz = max(pixel_sz1, pixel_sz2)
-
-                    angleh_rad, anglev_rad = angles.get_angle(cx, cy)
-                    angleh_rad += cam["yaw_rad"][i]
-
-                    if angleh_rad > np.pi:
-                        angleh_rad -= 2 * np.pi
-
-                    anglev_rad += cam["pitch_rad"][i]
-
-                    dist = angles.get_distance(pixel_sz, cfg["marker"]["size"])
-
-                    markers.extend([id, angleh_rad, anglev_rad, dist])
-
-                    if cfg["display"]["marker"]:
-                        cv2.circle(framei, (cx, cy), 4, (0, 0, 255), -1)
-
-            if cfg["display"]["marker"]:
-                cv2.aruco.drawDetectedMarkers(framei, corners, markerids)
-                frames.append(framei)
+            frames.append(framei)
+            mrkrs = detector.detect(frame, cam["yaw_rad"][i], cam["pitch_rad"][i])
+            markers.extend(mrkrs)
 
         if len(markers) > 0:
             markers.insert(0, packetid)
             network.send_array("tags", markers)
             packetid += 1
 
-        if cfg["display"]["marker"]:
+        if cfg["display"]["marker4cam"]:
             iframe1 = np.hstack((frames[0], frames[1]))
             iframe2 = np.hstack((frames[2], frames[3]))
             iframe = np.vstack((iframe1, iframe2))
@@ -98,16 +133,7 @@ def marker_detect(cfg, shm, sem, procid, quit):
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now
 
-            iframe = cv2.putText(
-                iframe,
-                fps,
-                cfg["FPS"]["org"],
-                cv2.FONT_HERSHEY_SIMPLEX,
-                cfg["FPS"]["fontscale"],
-                cfg["FPS"]["color"],
-                cfg["FPS"]["thickness"],
-                cv2.LINE_AA,
-            )
+            put_fps(cfg, iframe, fps)
 
             cv2.imshow(win_name, iframe)
 
