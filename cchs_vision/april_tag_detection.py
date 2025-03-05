@@ -4,9 +4,8 @@ import numpy as np
 import yaml
 
 count = 0
+
 class Detector:
-
-
     def __init__(self,cfg):
         if cfg["marker_family"] == "16h5":
             self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_APRILTAG_16H5)
@@ -38,16 +37,6 @@ class Detector:
         #     topLeft = (int(topLeft[0]), int(topLeft[1]))
         return markers
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__' :
     with open("config.yaml", "r") as file:
         cfg = yaml.safe_load(file)
@@ -73,8 +62,6 @@ if __name__ == '__main__' :
         # plt.show()
 
         cv2.imshow("markers", img)
-
-
 
         if cv2.waitKey(1) == ord('q'):
             break
