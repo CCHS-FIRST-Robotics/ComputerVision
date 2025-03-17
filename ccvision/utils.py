@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import numpy as np
 
 
@@ -28,12 +29,22 @@ def rad2deg(rad):
     return 180 * rad / np.pi
 
 
-def is_daemon():
-    try:
-        ppid = os.getpid()
-        with open(f"/proc/{ppid}/comm", "r") as f:
-            pp = f.read().strip()
-            return pp == "systemd"
+def deg2rad(deg):
+    return np.pi * deg / 180
 
-    except Exception:
-        return False
+
+def put_fps(cfg, frame, fps):
+    frame = cv2.putText(
+        frame,
+        fps,
+        cfg["FPS"]["org"],
+        cv2.FONT_HERSHEY_SIMPLEX,
+        cfg["FPS"]["fontscale"],
+        cfg["FPS"]["color"],
+        cfg["FPS"]["thickness"],
+        cv2.LINE_AA,
+    )
+
+
+def is_daemon():
+    return os.getppid() == 1
