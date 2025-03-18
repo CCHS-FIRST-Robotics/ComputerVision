@@ -19,8 +19,18 @@ camera4cam:
     cameraids: [0,1,2,3] # do marker det only on camera [0-3]
     calibration: calibration.npz # calibration numpy file
 
-camera:
-    id: 1
+camera1:
+    id: 779
+    exposure: -3 # -4 max sensitvity
+    fovh: 50
+    yaw: 0
+    pitch: 0
+    w: 640
+    h: 480
+    c: 3
+
+camera2:
+    id: 810
     exposure: -3 # -4 max sensitvity
     fovh: 50
     yaw: 0
@@ -48,13 +58,15 @@ tasks: # what tasks to run
     marker4cam: True
     objdet: False
     stream: False
-    marker: True
+    marker1: True
+    marker2: True
 
 display: # process to display images
     main: False
     marker4cam: True
     objdet: False
-    marker: True
+    marker1: True
+    marker2: True
 
 FPS: # FPS display settings
     org: [5, 20]

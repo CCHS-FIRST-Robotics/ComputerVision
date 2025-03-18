@@ -10,11 +10,15 @@ from .network_table import NetworkTable
 from .utils import deg2rad, get_dim, get_shm_frame, put_fps
 
 
-def marker_detect(cfg, quit):
+def marker_detect(cfg, taskid, quit):
 
-    win_name = "marker det"
-    cam = cfg["camera"]
-    mark = cfg["marker"]
+    win_name = "marker det" + taskid
+    if taskid == 1:
+        cam = cfg["camera1"]
+    else:
+        cam = cfg["camera2"]
+
+    markdisp = f"marker{taskid}"
 
     # conv to rad
     cam["yaw_rad"] = deg2rad(cam["yaw"])
@@ -57,7 +61,7 @@ def marker_detect(cfg, quit):
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
-    logging.info("marker_detect single cam start")
+    logging.info(f"marker_detect single cam start {taskid}")
 
     p_tm = time.time()
     while True:
@@ -69,7 +73,7 @@ def marker_detect(cfg, quit):
             network.send_array("tags", markers)
             packetid += 1
 
-        if cfg["display"]["marker"]:
+        if cfg["display"][markdisp]:
             now = time.time()
             fps = f"FPS {1/(now-p_tm):.1f}"
             p_tm = now

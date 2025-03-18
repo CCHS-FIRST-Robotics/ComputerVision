@@ -177,9 +177,13 @@ if __name__ == "__main__":
         proc_stream = Process(target=stream, args=(cfg, shm, sem, quit))
         proc_stream.start()
 
-    if cfg["tasks"]["marker"]:
-        proc_marker = Process(target=marker_detect, args=(cfg, quit))
-        proc_marker.start()
+    if cfg["tasks"]["marker1"]:
+        proc_marker1 = Process(target=marker_detect, args=(cfg, 1, quit))
+        proc_marker1.start()
+
+    if cfg["tasks"]["marker2"]:
+        proc_marker2 = Process(target=marker_detect, args=(cfg, 2,  quit))
+        proc_marker2.start()
 
     tasks = []
     for k, v in cfg["tasks"].items():
@@ -199,8 +203,11 @@ if __name__ == "__main__":
     if cfg["tasks"]["stream"]:
         proc_stream.join()
 
-    if cfg["tasks"]["marker"]:
-        proc_marker.join()
+    if cfg["tasks"]["marker1"]:
+        proc_marker1.join()
 
+    if cfg["tasks"]["marker2"]:
+        proc_marker2.join()
+    
     shm.close()
     shm.unlink()
