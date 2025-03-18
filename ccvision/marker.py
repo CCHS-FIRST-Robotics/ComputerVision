@@ -12,7 +12,7 @@ from .utils import deg2rad, get_dim, get_shm_frame, put_fps
 
 def marker_detect(cfg, taskid, quit):
 
-    win_name = "marker det" + taskid
+    win_name = f"marker det {taskid}"
     if taskid == 1:
         cam = cfg["camera1"]
     else:
