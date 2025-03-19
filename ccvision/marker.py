@@ -65,6 +65,7 @@ def marker_detect(cfg, quit):
         markers = detector.detect(frame, cam["yaw_rad"], cam["pitch_rad"])
 
         if len(markers) > 0:
+            markers.insert(0, cam['camid'])
             markers.insert(0, packetid)
             network.send_array("tags", markers)
             packetid += 1
@@ -138,6 +139,7 @@ def marker_detect4cam(cfg, shm, sem, quit):
             markers.extend(mrkrs)
 
         if len(markers) > 0:
+            markers.insert(0, cam['camid'])
             markers.insert(0, packetid)
             network.send_array("tags", markers)
             packetid += 1
