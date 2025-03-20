@@ -42,7 +42,7 @@ def marker_detect(cfg, quit):
     h = int(h)
     w = int(w)
 
-    angles = Angles(w, h, cam["fovh"])
+    angles = Angles(w, h, cam["fovh"], cfg['robot']['coordsys'])
     detector = MarkerDetector(
         mark["family"], mark["size"], angles, cfg["display"]["marker"]
     )
@@ -95,7 +95,7 @@ def marker_detect4cam(cfg, shm, sem, quit):
 
     tw, th = get_dim(cam["w"], cam["h"], cam["wr"])
 
-    angles = Angles(cam["imw"], th, cam["fovh"])
+    angles = Angles(cam["imw"], th, cam["fovh"], cfg['robot']['coordsys'])
     detector = MarkerDetector(
         mark["family"], mark["size"], angles, cfg["display"]["marker4cam"]
     )

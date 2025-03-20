@@ -1,8 +1,9 @@
 robot:
     #ip: localhost
     ip: 10.32.5.2 # roborio ip address
+    coordsys: NWU # or NED coordinate system ADJUST cam angles below
 
-# OV9782 global shutter camera x 4
+  # OV9782 global shutter camera x 4
 # https://www.arducam.com/product/arducam-1mp4-quadrascopic-camera-bundle-kit-for-raspberry-pi-nvidia-jetson-four-ov9782-global-shutter-color-camera-modules-and-camarray-camera-hat-b0331/
 camera4cam:
     id: 0 #/dev/video0
@@ -10,7 +11,7 @@ camera4cam:
     exposure: auto # -4 max sensitivity can be higher, 'auto' for auto exposure 
     type: arducam
     fovh: 65 # fov horizontal
-    yaw: [180,-90,90,0] # camera orientatiom for each camera
+    yaw: [180,90,-90,0] # camera orientatiom for each camera
     pitch: [30,-3,-3,-25] # vertical tilt angles for each cameraid + is up
     w: 5120 # capture pixel width
     h: 800 # capture height
@@ -25,7 +26,7 @@ camera:
     camid: 1
     exposure: auto # -4 max sensitvity
     fovh: 50
-    yaw: 20
+    yaw: -20
     pitch: 0
     w: 640
     h: 480

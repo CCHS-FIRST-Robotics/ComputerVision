@@ -1,10 +1,13 @@
 import numpy as np
 
+from .coordsys import Coordsys
+
 
 class Angles:
-    def __init__(self, img_w, img_h, fovh):
+    def __init__(self, img_w, img_h, fovh, coordsys=Coordsys.NWU):
         self.img_h = img_h
         self.img_w = img_w
+        self.coordsys = coordsys
 
         fovh_rad = np.pi * fovh / 180
         # calculate vertical camera angle with square pixels
@@ -19,6 +22,9 @@ class Angles:
         angles measured from camera center
         """
         x -= self.img_w / 2  # center right positive
+        if self.coordsys == coordsys.NWU:
+            x = -x  # change rotation direction
+
         y = self.img_h / 2 - y  # y start from top, reverse
 
         angleh_rad = np.arctan(x / self.focal_px)
