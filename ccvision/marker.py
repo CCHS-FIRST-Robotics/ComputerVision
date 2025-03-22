@@ -102,7 +102,7 @@ def marker_detect4cam(cfg, shm, sem, quit):
 
     # Create a NetworkTables instance
     network = NetworkTable(cfg, "tags")
-    packetid = 0
+    packetids = [0, 0, 0, 0]
 
     logging.basicConfig(
         filename=cfg["logfile"],
@@ -117,7 +117,6 @@ def marker_detect4cam(cfg, shm, sem, quit):
     while True:
         frame = get_shm_frame(shm, sem, (th, tw, cam["c"]))
         frames = []
-        markers = []
 
         # Do marker detection only cameras specified in cfg
         for i in cam["cameraids"]:
@@ -134,15 +133,17 @@ def marker_detect4cam(cfg, shm, sem, quit):
                 )
                 x, y, w, h = roi
                 framei = framei[y : y + h, x : x + w]
-            frames.append(framei)
-            mrkrs = detector.detect(framei, cam["yaw_rad"][i], cam["pitch_rad"][i])
-            markers.extend(mrkrs)
 
-        if len(markers) > 0:
-            markers.insert(0, cam['camid'])
-            markers.insert(0, packetid)
-            network.send_array("tags", markers)
-            packetid += 1
+            mrkrs = detector.detect(framei, cam["yaw_rad"][i], cam["pitch_rad"][i])
+
+            if len(mrkrs) > 0:
+                markers.insert(0, i) # cameraid
+                markers.insert(0, packetids[i])
+                network.send_array("tags", mrkrs)
+                packetids[i] += 1
+
+            if cfg["display"]["marker4cam"]:
+                frames.append(framei)
 
         if cfg["display"]["marker4cam"]:
             iframe1 = np.hstack((frames[0], frames[1]))
