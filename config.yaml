@@ -22,7 +22,7 @@ camera4cam:
 
 camera:
     id: 1
-    camid: 1
+    camid: 4
     exposure: auto # -4 max sensitvity
     fovh: 50
     yaw: 20
