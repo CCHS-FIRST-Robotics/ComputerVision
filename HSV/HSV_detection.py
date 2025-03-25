@@ -12,7 +12,7 @@ def detect_color(frame, lowerHSV, upperHSV):
     img = cv2.bitwise_and(frame, frame, mask=mask) #mask for black spaces
     img = cv2.erode(img, kernel, iterations=1) #remove pixels
     img = cv2.dilate(img, kernel, iterations=1) #add them to boundary
-    img = cv2.Canny(img, 40, 180) 
+    #img = cv2.Canny(img, 40, 180) 
 
     if len(detect) > 0 and len(detect[1]):
         print(detect[0].min(), detect[0].max())
