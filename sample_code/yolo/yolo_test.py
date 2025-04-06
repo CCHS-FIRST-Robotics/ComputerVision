@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-model = YOLO("yolo-Weights/yolov8n.pt")
+#model = YOLO("yolo-Weights/yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 fontScale = 1
-color = (255, 0, 0)
+color = (0, 255, 0)
 thickness = 2
 
 cap = cv2.VideoCapture(0)
@@ -23,7 +24,7 @@ while True:
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) #convert to int coordinates
 
             classID = int(b.cls[0])
-            confidence = b.confidence[0]
+            confidence = b.conf[0]
 
             txt = f"{r.names[classID]} {confidence:.2f}" #what is detected, & confidence rating
 
