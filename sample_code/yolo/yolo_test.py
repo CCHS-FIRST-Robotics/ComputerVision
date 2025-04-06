@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-#model = YOLO("yolo-Weights/yolov8n.pt")
 model = YOLO("yolo11n.pt")
 
 font = cv2.FONT_HERSHEY_SIMPLEX
