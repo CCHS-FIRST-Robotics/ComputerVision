@@ -4,6 +4,7 @@ from cv2 import aruco
 import cv2.aruco as aruco
 
 cap = cv2.VideoCapture(0)
+
 cap.set(3, 640)
 cap.set(4, 480)
 
@@ -23,6 +24,7 @@ while True:
 
     if ids is not None:
         aruco.drawDetectedMarkers(frame, corners, ids)
+        cv2.solvePnP()
 
     cv2.imshow("frame", frame)
 

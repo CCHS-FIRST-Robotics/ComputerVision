@@ -28,9 +28,12 @@ def detect_color(frame, lowerHSV, upperHSV):
     return img
 
 if __name__ == "__main__":
-    #color range (opencv HSV)
-    lower_ball = np.array([79, 0, 0])
-    upper_ball = np.array([84, 220, 157])
+
+    #lower_ball = np.array([79, 0, 0])
+    #upper_ball = np.array([84, 220, 157])
+
+    lower_ball = np.array([0, 20, 70])
+    upper_ball = np.array([15, 255, 255])
 
     cap = cv2.VideoCapture(0)
 
